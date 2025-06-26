@@ -1,0 +1,8 @@
+# Unity 
+unity/TemporalVR/[Ll]ibrary/
+unity/TemporalVR/[Tt]emp/
+unity/TemporalVR/[Bb]uilds/
+*.blend1
+*.blend2
+
+unity/TemporalVR/Logs/

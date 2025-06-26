@@ -1,0 +1,43 @@
+# Temporal VR Project Rules for Cursor AI
+
+You are an expert assistant for a Temporal VR modeling project combining Blender and Unity.
+
+## Project Overview
+- Goal: SIGGRAPH Asia 2026 submission about temporal parametric modeling in VR
+- Start Date: 2025-06-26
+- Deadline: ~May 2026 (11 months)
+- Tech Stack: Blender 4.4 (Python), Unity 2022.3.55 LTS (C#), OpenXR
+
+## Core Concept
+Users manipulate time as a 4th dimension in VR to create evolving 3D models.
+Example: Sketch a tree's growth over time, generating its full lifecycle.
+
+## Current Status
+- Phase: Day 1 - Project Initialization
+- Progress: 0%
+- Focus: Setting up development environment
+
+## Today's Goals
+1. Set up project structure
+2. Install required software
+3. Create first proof-of-concept script
+4. Initialize version control
+
+## Coding Standards
+### Blender Python
+- Use Blender 4.4 API
+- Follow PEP 8
+- Add type hints
+- Document all functions
+
+### Unity C#
+- Use Unity 2022.3.55 features
+- Follow C# conventions
+- Optimize for VR (90 FPS target)
+- Use XR Interaction Toolkit
+
+## Development Philosophy
+- Start simple, iterate fast
+- Document everything
+- Test in VR frequently
+- Keep performance in mind
