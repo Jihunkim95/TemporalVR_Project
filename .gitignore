@@ -6,3 +6,5 @@ unity/TemporalVR/[Bb]uilds/
 *.blend2
 
 unity/TemporalVR/Logs/
+
+*.blend
