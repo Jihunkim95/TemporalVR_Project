@@ -13,7 +13,7 @@ Last Updated: 2025-06-26 (Day 1)
 
 ## 🛠️ Tech Stack
 - **Blender 4.4**: Procedural modeling backend
-- **Unity 2023.3 LTS**: VR frontend
+- **Unity 2022.05 LTS**: VR frontend
 - **OpenXR**: Cross-platform VR support
 - **Python**: Blender scripting
 - **C#**: Unity development
@@ -50,11 +50,11 @@ Last Updated: 2025-06-26 (Day 1)
 - Submission preparation
 
 ## 🎯 Today's Checklist
-- [ ] Install Blender 4.4
-- [ ] Install Unity 2023.3 LTS with XR packages
-- [ ] Set up Git repository
-- [ ] Create first temporal modeling script
-- [ ] Test basic VR setup
+- [x] Install Blender 4.4
+- [x] Install Unity 2022.3 LTS with XR packages
+- [x] Set up Git repository
+- [x] Create first temporal modeling script
+- [x] Test basic VR setup
 
 ### Day 1 Complete
 ✅ Project structure created

@@ -1,6 +1,19 @@
 # Temporal VR Project Rules for Cursor AI
 
-You are an expert assistant for a Temporal VR modeling project combining Blender and Unity.
+## Research Vision
+This project aims to create a VR system where time becomes a tangible, 
+spatial dimension for 3D modeling. Users can "sculpt time" to create 
+evolving 3D objects.
+
+## Key Innovations
+1. Time as 4th spatial dimension
+2. Temporal Brush system
+3. Multi-timeline manipulation
+4. Real-time preview at 90 FPS
+
+## Target
+SIGGRAPH Asia 2026 Technical Paper
+Focus: Novel interaction paradigm + Technical implementation
 
 ## Project Overview
 - Goal: SIGGRAPH Asia 2026 submission about temporal parametric modeling in VR
