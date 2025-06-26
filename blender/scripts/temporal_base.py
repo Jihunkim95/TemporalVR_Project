@@ -1,46 +1,54 @@
+"""
+Temporal Base Script for Blender 4.4
+Demonstrates temporal modeling: an object's properties evolve over time (frames).
+This is the foundation for VR temporal modeling in the Temporal VR Project.
+"""
+
 import bpy
+from mathutils import Vector
+from typing import Any
 
-# Temporal Modeling Proof-of-Concept Script
-# This script demonstrates how an object's properties can evolve over time (temporal modeling)
-# by animating a cube's location, scale, and rotation over 100 frames.
+# --- CONFIGURABLE PARAMETERS ---
+START_FRAME: int = 1
+END_FRAME: int = 100
+CUBE_NAME: str = "TemporalCube"
 
-# 1. Remove all existing objects for a clean slate
-bpy.ops.object.select_all(action='SELECT')
-bpy.ops.object.delete(use_global=False)
+# --- CLEANUP: Remove existing object with the same name ---
+def remove_object(name: str) -> None:
+    obj = bpy.data.objects.get(name)
+    if obj:
+        bpy.data.objects.remove(obj, do_unlink=True)
 
-# 2. Create a simple cube
+remove_object(CUBE_NAME)
+
+# --- CREATE CUBE ---
 bpy.ops.mesh.primitive_cube_add(size=2, location=(0, 0, 0))
 cube = bpy.context.active_object
-cube.name = "TemporalCube"
+cube.name = CUBE_NAME
 
-# 3. Define temporal transformations over 100 frames
-start_frame = 1
-end_frame = 100
-bpy.context.scene.frame_start = start_frame
-bpy.context.scene.frame_end = end_frame
+# --- TEMPORAL TRANSFORMATION FUNCTION ---
+def temporal_transform(obj: Any, frame: int) -> None:
+    """
+    Apply temporal transformation to the object at a given frame.
+    For demonstration: cube moves up and scales over time.
+    """
+    # Example: Move up and scale with time
+    t = (frame - START_FRAME) / (END_FRAME - START_FRAME)  # Normalized time [0,1]
+    obj.location = Vector((0, 0, t * 10))  # Move up along Z
+    obj.scale = Vector((1 + t, 1 + t, 1 + t))  # Uniformly scale up
 
-for frame in range(start_frame, end_frame + 1):
-    # Set the current frame
+# --- ANIMATE OVER TIME ---
+for frame in range(START_FRAME, END_FRAME + 1):
     bpy.context.scene.frame_set(frame)
-    
-    # Temporal concept: The cube evolves over time
-    # Example: It moves upward, grows, and spins as time progresses
-    t = (frame - start_frame) / (end_frame - start_frame)  # Normalized time [0, 1]
-    
-    # Location: Move up along Z axis
-    cube.location = (0, 0, t * 10)
-    cube.keyframe_insert(data_path="location", index=-1)
-    
-    # Scale: Grow from 1 to 2
-    cube.scale = (1 + t, 1 + t, 1 + t)
-    cube.keyframe_insert(data_path="scale", index=-1)
-    
-    # Rotation: Spin around Z axis
-    cube.rotation_euler = (0, 0, t * 6.28319)  # 0 to 2*PI radians (360 degrees)
-    cube.keyframe_insert(data_path="rotation_euler", index=-1)
+    temporal_transform(cube, frame)
+    # Insert keyframes for location and scale
+    cube.keyframe_insert(data_path="location", frame=frame)
+    cube.keyframe_insert(data_path="scale", frame=frame)
 
-# ---
-# Temporal Modeling Concept:
-# Each frame represents a different point in time. By keyframing properties (location, scale, rotation),
-# we define how the object 'evolves' as time progresses. This is the foundation for temporal modeling in Blender.
-# --- 
+# --- EXPLANATION (for users) ---
+"""
+Temporal Modeling Concept:
+- The cube's position and size change over 100 frames, representing its evolution through time.
+- This script is a foundation for more complex temporal modeling, where users can define how objects evolve.
+- In VR, users will manipulate these temporal properties interactively.
+""" 
