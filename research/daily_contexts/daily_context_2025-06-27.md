@@ -5,7 +5,7 @@ Documentation & review
 
 ## 📊 Starting Point
 ### Yesterday's Summary
-No previous work recorded
+Unity 및 Blender 다운로드
 
 ### Git Status
 - Modified files: 0
@@ -18,11 +18,15 @@ No previous work recorded
 - No blockers detected
 
 ## 📋 Today's Checklist
-- [ ] Review yesterday's work
-- [ ] Continue documentation & review
-- [ ] Test in VR if applicable
-- [ ] Update research notes
+- [o] Review yesterday's work
+- [o] Continue documentation & review
+- [o] unity XR환경구축
+- [o] Blender Temporal 시스템 구현
+- [0] VR컨트롤러 입력 시스템 설계계: TemporalVRController.cs 작성
 - [ ] Commit and push changes
+
+## 📋 Tomorrow Checklist
+- VR컨트롤러 입력 시스템 설계계: TemporalVRController.cs 작성 스크립트 테스트
 
 ## 💡 Quick References
 - Blender API: https://docs.blender.org/api/current/

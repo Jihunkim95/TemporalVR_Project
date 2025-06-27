@@ -10,3 +10,28 @@
 
 ### 💡 핵심 아이디어
 "시간을 4차원으로 조작하는 VR 모델링 시스템"
+## 2025-06-27 (Fri) - Day 2: TemporalVRController.cs 작성 및 스크립트 테스트. 앞으로도 잘 되어야될텐데 화이팅이다.
+
+### 🎯 Completed Tasks
+- None
+
+### 🔧 Technical Progress
+
+
+### 💡 Research Insights
+
+
+### ⚠️ Issues & Blockers
+
+
+### 📊 Statistics
+- Git commits today: 3
+- Files modified: 3
+- Progress: 6.9%
+
+### 🎯 Next Steps
+- VR컨트롤러 입력 시스템 설계계: TemporalVRController.cs 작성 스크립트 테스트
+
+
+
+---

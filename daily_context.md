@@ -4,24 +4,24 @@
 **Unity VR project initialization and XR setup**
 
 ## 📊 Project Status
-- **Progress**: 2.4% complete
+- **Progress**: 6.9% complete
 - **Phase**: Foundation & Setup
 - **Week**: 1 of 47
 
 ## 📝 Yesterday's Summary
-No previous work recorded
+- [x] 프로젝트 구조 설정 - [x] Cursor AI 환경 구성 - [x] 첫 temporal 스크립트 작성
 
 ## 💻 Git Status
-- **Modified files**: 9
+- **Modified files**: 2
 - **Current branch**: master
-- **Last commit**: f757dbd - Feat: daily_context 매일 일과 추가 (39 minutes ago)
+- **Last commit**: ecd98bc - Feat: VR컨트롤러 입력 시스템 설계계: TemporalVRController.cs 작성 (3 minutes ago)
 
 ## 🔥 Hot Files (Recently Active)
-- `daily_context.md`
+- `unity/TemporalVR/Assets/XRI/Settings/Resources/InteractionLayerSettings.asset`
+- `unity/TemporalVR/Assets/XR/Loaders/OpenXRLoader.asset`
+- `blender/scripts/temporal_base.py`
+- `unity/TemporalVR/Assets/Scenes/TemporalVRRig.unity.meta`
 - `unity/TemporalVR/ProjectSettings/GraphicsSettings.asset`
-- `unity/TemporalVR/ProjectSettings/AudioManager.asset`
-- `Example txt file.txt`
-- `unity/TemporalVR/Assets/XR/Settings/OpenXR Package Settings.asset`
 
 ## ⚠️ Current Blockers
 - ✅ No blockers detected
