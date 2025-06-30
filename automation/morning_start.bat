@@ -20,7 +20,7 @@ if %errorlevel% neq 0 (
 REM Python 스크립트 실행
 echo.
 echo [2/5] Updating contexts...
-python automation\update_contexts.py
+python automation\temporal_vr_automation.py morning
 if %errorlevel% neq 0 (
     echo ⚠️  Context update failed! Check Python installation.
     pause

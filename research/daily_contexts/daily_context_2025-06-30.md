@@ -12,7 +12,7 @@
 - None
 
 ## 💻 Git Status
-- **Modified files**: 4
+- **Modified files**: 3
 - **Current branch**: master
 - **Last commit**: 88b754e - Day 2: TemporalVRController.cs 작성 및 스크립트 테스트. (3 days ago)
 

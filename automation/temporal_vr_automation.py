@@ -2,7 +2,7 @@
 Temporal VR Project - Unified Automation System
 통합된 자동화 시스템 - 모든 기능을 하나로
 """
-
+# temporal_vr_automation.py
 import os
 import json
 import subprocess
@@ -267,6 +267,7 @@ Last Updated: {datetime.now().strftime('%Y-%m-%d %H:%M')} (Day {day})
 
 ## 🎯 Project Overview
 **Goal**: Create a VR system where users can model 3D objects by manipulating time as a 4th dimension
+Temporal VR은 단순히 3D 객체를 만드는 것이 아니라, 시간에 따라 변화하는 살아있는 3D 객체를 만드는 것을 목표로 합니다.
 **Target**: SIGGRAPH Asia 2026 Paper Submission
 **Duration**: 11 months (June 2025 - May 2026)
 
@@ -352,7 +353,6 @@ Last Updated: {datetime.now().strftime('%Y-%m-%d %H:%M')} (Day {day})
 - [ ] Review yesterday's work
 - [ ] {self.suggest_today_focus()}
 - [ ] Test changes in VR if applicable  
-- [ ] Update `research/daily_notes.md`
 - [ ] Commit with descriptive message
 - [ ] Run `python automation/temporal_vr_automation.py evening`
 

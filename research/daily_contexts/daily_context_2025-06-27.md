@@ -23,7 +23,7 @@ Unity 및 Blender 다운로드
 - [o] unity XR환경구축
 - [o] Blender Temporal 시스템 구현
 - [0] VR컨트롤러 입력 시스템 설계계: TemporalVRController.cs 작성
-- [ ] Commit and push changes
+- [o] Commit and push changes
 
 ## 📋 Tomorrow Checklist
 - VR컨트롤러 입력 시스템 설계계: TemporalVRController.cs 작성 스크립트 테스트
