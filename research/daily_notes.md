@@ -35,3 +35,31 @@
 
 
 ---
+
+## 2025-06-30 (Mon) - Day 5: VR 컨트롤러 Interaction구현
+
+### 🎯 Completed Tasks
+- Visual Feedback 시스템 구축
+- 테스트 오브젝트 구현: TObject
+- Visual Feedback 자동생성: TVR_Setup
+
+### 🔧 Technical Progress
+
+
+### 💡 Research Insights
+
+
+### ⚠️ Issues & Blockers
+
+
+### 📊 Statistics
+- Git commits today: 2
+- Files modified: 0
+- Progress: 8.7%
+
+### 🎯 Next Steps
+- VR Controller와 원 Object가 상호작용하는지 테스트
+
+
+
+---
