@@ -9,6 +9,7 @@ namespace TemporalVR
     /// <summary>
     /// VR 컨트롤러로 시간을 조작하는 핵심 입력 시스템
     /// </summary>
+    [RequireComponent(typeof(TVRFeedback))]
     public class TemporalVRController : MonoBehaviour
     {
         [Header("XR Controller References")]
@@ -20,10 +21,15 @@ namespace TemporalVR
         [SerializeField] private float temporalRange = 100f;
         [SerializeField] private float scrubSensitivity = 2f;
 
+
         [Header("Visual Feedback")]
         [SerializeField] private LineRenderer timelineVisualizer;
         [SerializeField] private Transform temporalCursor;
         [SerializeField] private TextMesh timeDisplay;
+
+        // 기존 Header들 다음에 추가
+        [Header("Feedback System")]
+        private TVRFeedback feedback;
 
         // 입력 상태
         private bool isGrabbingTimeline = false;
@@ -52,6 +58,14 @@ namespace TemporalVR
         {
             StartCoroutine(InitializeControllers());
             SetupTimelineVisualizer();
+            // TVRFeedback 컴포넌트 가져오기 또는 추가
+            feedback = GetComponent<TVRFeedback>();
+            if (feedback == null)
+            {
+                Debug.LogWarning("[TemporalVR] TVRFeedback not found, adding it now...");
+                feedback = gameObject.AddComponent<TVRFeedback>();
+                Debug.Log("[TemporalVR] TVRFeedback component added!");
+            }
         }
 
         private IEnumerator InitializeControllers()
@@ -90,19 +104,49 @@ namespace TemporalVR
             if (timelineVisualizer == null)
             {
                 GameObject lineObj = new GameObject("TimelineVisualizer");
+                lineObj.transform.SetParent(transform);
                 timelineVisualizer = lineObj.AddComponent<LineRenderer>();
             }
 
             timelineVisualizer.startWidth = 0.02f;
             timelineVisualizer.endWidth = 0.02f;
-            timelineVisualizer.material = new Material(Shader.Find("Sprites/Default"));
-            timelineVisualizer.startColor = new Color(0.1f, 0.1f, 0.8f, 0.5f);
-            timelineVisualizer.endColor = new Color(0.8f, 0.1f, 0.1f, 0.5f);
 
+            // Unlit Shader 사용 (색상이 더 잘 보임)
+            Material mat = new Material(Shader.Find("Sprites/Default"));
+            if (mat == null)
+            {
+                mat = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+            }
+            timelineVisualizer.material = mat;
+
+            // Use World Space
+            timelineVisualizer.useWorldSpace = true;
+
+            // 초기 색상 설정
+            Color initialColor = GetModeColor(currentMode);
+            timelineVisualizer.startColor = initialColor;
+            timelineVisualizer.endColor = initialColor;
+
+            // 위치 설정
             Vector3[] positions = new Vector3[2];
             positions[0] = transform.position - Vector3.right * (timelineLength / 2);
             positions[1] = transform.position + Vector3.right * (timelineLength / 2);
             timelineVisualizer.SetPositions(positions);
+
+            Debug.Log($"[TemporalVR] Timeline setup complete with color: {initialColor}");
+        }
+
+        // GetModeColor 메서드 추가
+        private Color GetModeColor(TemporalMode mode)
+        {
+            switch (mode)
+            {
+                case TemporalMode.Scrub: return new Color(0.2f, 0.4f, 1f);
+                case TemporalMode.Paint: return new Color(0.2f, 1f, 0.4f);
+                case TemporalMode.Sculpt: return new Color(1f, 0.4f, 0.2f);
+                case TemporalMode.Preview: return new Color(1f, 1f, 0.2f);
+                default: return Color.white;
+            }
         }
 
         private void Update()
@@ -132,19 +176,37 @@ namespace TemporalVR
         {
             if (rightActionController == null) return;
 
-            // selectAction이 Primary Button (A/X)
             bool primaryButtonPressed = false;
             if (rightActionController.selectAction != null && rightActionController.selectAction.action != null)
             {
                 primaryButtonPressed = rightActionController.selectAction.action.ReadValue<float>() > 0.5f;
             }
 
+            // Test 디버깅
             if (primaryButtonPressed && !wasPrimaryButtonPressed)
             {
                 currentMode = (TemporalMode)(((int)currentMode + 1) % 4);
                 Debug.Log($"[TemporalVR] Mode switched to: {currentMode}");
-            }
 
+                if (feedback != null)
+                {
+                    feedback.UpdateModeColor(currentMode);
+                    Debug.Log($"[TemporalVR] UpdateModeColor called with {currentMode}");
+                }
+                else
+                {
+                    Debug.LogError("[TemporalVR] TVRFeedback is null!");
+                }
+
+                // Timeline 색상 직접 변경 (테스트용)
+                if (timelineVisualizer != null)
+                {
+                    Color newColor = GetModeColor(currentMode);
+                    timelineVisualizer.startColor = newColor * 0.7f;
+                    timelineVisualizer.endColor = newColor;
+                    Debug.Log($"[TemporalVR] Direct timeline color update: {newColor}");
+                }
+            }
             wasPrimaryButtonPressed = primaryButtonPressed;
         }
 
@@ -153,30 +215,45 @@ namespace TemporalVR
             if (rightActionController == null) return;
 
             float triggerValue = 0f;
-
-            // activateAction이 Trigger
             if (rightActionController.activateAction != null && rightActionController.activateAction.action != null)
             {
                 triggerValue = rightActionController.activateAction.action.ReadValue<float>();
             }
 
-            if (triggerValue > 0.8f && !isGrabbingTimeline)
+            if (triggerValue > 0.5f && !isGrabbingTimeline)  // 임계값 낮춤
             {
                 isGrabbingTimeline = true;
                 grabStartPosition = rightController.position;
                 grabStartTime = currentTimePosition;
+                Debug.Log($"[Scrub] Started grabbing - StartPos: {grabStartPosition}, StartTime: {grabStartTime}");
             }
             else if (triggerValue < 0.2f && isGrabbingTimeline)
             {
                 isGrabbingTimeline = false;
+                Debug.Log($"[Scrub] Stopped grabbing - Final time: {currentTimePosition}");
             }
 
             if (isGrabbingTimeline)
             {
                 Vector3 currentPos = rightController.position;
                 float deltaX = (currentPos.x - grabStartPosition.x) * scrubSensitivity;
+
+                // 디버깅 정보
+                Debug.Log($"[Scrub] CurrentPos: {currentPos}, StartPos: {grabStartPosition}");
+                Debug.Log($"[Scrub] DeltaX: {deltaX}, Sensitivity: {scrubSensitivity}");
+
                 currentTimePosition = Mathf.Clamp(grabStartTime + (deltaX / timelineLength) * temporalRange, 0f, temporalRange);
+
+                Debug.Log($"[Scrub] Calculated Time: {currentTimePosition}");
+
                 OnTimeChanged(currentTimePosition);
+
+                // 모든 TObject 업데이트
+                TObject[] allTObjects = FindObjectsOfType<TObject>();
+                foreach (var tObj in allTObjects)
+                {
+                    tObj.UpdateToTime(currentTimePosition);
+                }
             }
         }
 
@@ -268,9 +345,12 @@ namespace TemporalVR
                 }
             }
 
+            // Time Display 업데이트
             if (timeDisplay != null)
             {
-                timeDisplay.text = $"Time: {currentTimePosition:F1}\nMode: {currentMode}";
+                string modeText = currentMode.ToString();
+                string timeText = $"T: {currentTimePosition:F2}s";
+                timeDisplay.text = $"{modeText}\n{timeText}";
             }
         }
 
@@ -282,17 +362,19 @@ namespace TemporalVR
 
         public float GetCurrentTime() => currentTimePosition;
         public TemporalMode GetCurrentMode() => currentMode;
+
+
     }
 
     // 나머지 클래스는 동일
     public class TemporalObject : MonoBehaviour
     {
-        public void ApplyTemporalBrush(Vector3 position, float strength, float time)
+        public virtual void ApplyTemporalBrush(Vector3 position, float strength, float time)
         {
             Debug.Log($"[TemporalObject] Brush applied at {position} with strength {strength} at time {time}");
         }
 
-        public void SetTemporalRange(float startTime, float endTime)
+        public virtual void SetTemporalRange(float startTime, float endTime)
         {
             Debug.Log($"[TemporalObject] Time range set: {startTime} - {endTime}");
         }
@@ -317,4 +399,6 @@ namespace TemporalVR
             OnTimeChanged?.Invoke(newTime);
         }
     }
+
+
 }

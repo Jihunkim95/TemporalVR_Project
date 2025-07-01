@@ -13,22 +13,28 @@ namespace TemporalVR
         [SerializeField] private AnimationCurve growthCurve;
         [SerializeField] private bool showTimeEffect = true;
 
-        private Material material;
+        private Renderer objectRenderer;  // Material 대신 Renderer 저장
         private Vector3 originalScale;
         private float lastAppliedTime = 0f;
 
         void Start()
         {
-            // Material 가져오기 또는 생성
-            Renderer renderer = GetComponent<Renderer>();
-            if (renderer != null)
+            // Renderer 참조 저장
+            objectRenderer = GetComponent<Renderer>();
+            if (objectRenderer == null)
             {
-                material = renderer.material;
-                if (material == null)
-                {
-                    material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-                    renderer.material = material;
-                }
+                Debug.LogError("[TObject] No Renderer found!");
+                return;
+            }
+
+            // 머티리얼 인스턴스 생성 (중요!)
+            if (objectRenderer.sharedMaterial != null)
+            {
+                objectRenderer.material = new Material(objectRenderer.sharedMaterial);
+            }
+            else
+            {
+                objectRenderer.material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
             }
 
             originalScale = transform.localScale;
@@ -54,11 +60,42 @@ namespace TemporalVR
             {
                 growthCurve = AnimationCurve.EaseInOut(0f, 0.5f, 1f, 2f);
             }
+
+            // 테스트: 3초 후 자동 효과
+            //StartCoroutine(AutoTest());
+        }
+        public void UpdateToTime(float time)
+        {
+            if (!showTimeEffect) return;
+
+            float normalizedTime = time / 100f;
+
+            // 색상 업데이트
+            Color timeColor = timeGradient.Evaluate(normalizedTime);
+            if (objectRenderer != null && objectRenderer.material != null)
+            {
+                objectRenderer.material.SetColor("_BaseColor", timeColor);
+                objectRenderer.material.SetColor("_EmissionColor", timeColor * 0.5f);
+            }
+
+            // 크기 업데이트 (애니메이션 없이 즉시)
+            float scale = growthCurve.Evaluate(normalizedTime);
+            transform.localScale = originalScale * scale;
+
+            Debug.Log($"[TObject] Updated to time: {time} (normalized: {normalizedTime})");
+        }
+        IEnumerator AutoTest()
+        {
+            yield return new WaitForSeconds(3f);
+            Debug.Log("[TObject] Auto test starting!");
+            ApplyTemporalBrush(transform.position, 1f, 50f);
         }
 
-        public new void ApplyTemporalBrush(Vector3 position, float strength, float time)
+        public override void ApplyTemporalBrush(Vector3 position, float strength, float time)
         {
             base.ApplyTemporalBrush(position, strength, time);
+
+            Debug.Log($"[TObject] ApplyTemporalBrush called! Time: {time}, Strength: {strength}");
 
             if (!showTimeEffect) return;
 
@@ -68,11 +105,16 @@ namespace TemporalVR
             float normalizedTime = time / 100f;
             Color timeColor = timeGradient.Evaluate(normalizedTime);
 
-            if (material != null)
+            if (objectRenderer != null && objectRenderer.material != null)
             {
-                material.SetColor("_BaseColor", timeColor);
-                material.EnableKeyword("_EMISSION");
-                material.SetColor("_EmissionColor", timeColor * strength);
+                Debug.Log($"[TObject] Changing color to: {timeColor}");
+                objectRenderer.material.SetColor("_BaseColor", timeColor);
+                objectRenderer.material.EnableKeyword("_EMISSION");
+                objectRenderer.material.SetColor("_EmissionColor", timeColor * strength);
+            }
+            else
+            {
+                Debug.LogError("[TObject] Renderer or material is null!");
             }
 
             // 크기 변화 애니메이션
@@ -83,7 +125,7 @@ namespace TemporalVR
             StartCoroutine(ImpactEffect(position, strength));
         }
 
-        public new void SetTemporalRange(float startTime, float endTime)
+        public override void SetTemporalRange(float startTime, float endTime)
         {
             base.SetTemporalRange(startTime, endTime);
 
@@ -120,7 +162,12 @@ namespace TemporalVR
             impactObj.transform.localScale = Vector3.one * 0.05f;
 
             Renderer renderer = impactObj.GetComponent<Renderer>();
-            Material impactMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+            // Unlit Shader 사용 (색상이 더 잘 보임)
+            Material impactMat = new Material(Shader.Find("Sprites/Default"));
+            if (impactMat == null)
+            {
+                impactMat = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+            }
             impactMat.EnableKeyword("_EMISSION");
             impactMat.SetColor("_EmissionColor", Color.white * 2f);
             renderer.material = impactMat;
@@ -147,6 +194,7 @@ namespace TemporalVR
             Destroy(impactObj);
         }
 
+        // ShowTimeRangeEffect에서도 material 대신 objectRenderer.material 사용
         IEnumerator ShowTimeRangeEffect(float startTime, float endTime)
         {
             float duration = 2f;
@@ -157,17 +205,15 @@ namespace TemporalVR
                 float t = elapsed / duration;
                 float currentTime = Mathf.Lerp(startTime, endTime, Mathf.PingPong(t * 2f, 1f));
 
-                // 시간에 따른 색상 애니메이션
                 float normalizedTime = currentTime / 100f;
                 Color timeColor = timeGradient.Evaluate(normalizedTime);
 
-                if (material != null)
+                if (objectRenderer != null && objectRenderer.material != null)
                 {
-                    material.SetColor("_BaseColor", timeColor);
-                    material.SetColor("_EmissionColor", timeColor * 0.5f);
+                    objectRenderer.material.SetColor("_BaseColor", timeColor);
+                    objectRenderer.material.SetColor("_EmissionColor", timeColor * 0.5f);
                 }
 
-                // 펄스 효과
                 float pulse = 1f + Mathf.Sin(t * Mathf.PI * 4f) * 0.1f;
                 transform.localScale = originalScale * pulse;
 
@@ -175,7 +221,6 @@ namespace TemporalVR
                 yield return null;
             }
 
-            // 원래 상태로 복구
             transform.localScale = originalScale;
         }
     }

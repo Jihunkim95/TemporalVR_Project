@@ -65,13 +65,18 @@ namespace TemporalVR
 
             indicator.name = $"{mode}Indicator";
             indicator.transform.localPosition = localPos;
-            indicator.transform.localScale = Vector3.one * 0.03f;
+            indicator.transform.localScale = Vector3.one * 0.1f;
 
             // Material 설정
             Renderer renderer = indicator.GetComponent<Renderer>();
             if (renderer != null)
             {
-                Material mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                // Unlit Shader 사용 (색상이 더 잘 보임)
+                Material mat = new Material(Shader.Find("Sprites/Default"));
+                if (mat == null)
+                {
+                    mat = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+                }
                 mat.EnableKeyword("_EMISSION");
                 mat.SetColor("_BaseColor", color);
                 mat.SetColor("_EmissionColor", color * 2f);
@@ -98,15 +103,23 @@ namespace TemporalVR
 
                 // 위치 계산
                 float t = i / (float)(markerCount - 1);
-                float x = Mathf.Lerp(-5f, 5f, t); // timelineLength = 10
+                float x = Mathf.Lerp(-5f, 5f, t);
                 marker.transform.localPosition = new Vector3(x, -0.05f, 0);
                 marker.transform.localScale = new Vector3(0.02f, 0.1f, 0.02f);
 
-                // Material
+                // Material - 올바른 방법
                 Renderer renderer = marker.GetComponent<Renderer>();
-                Material mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+
+                // 방법 1: Sprites/Default 사용
+                Material mat = new Material(Shader.Find("Sprites/Default"));
                 float colorT = i / (float)(markerCount - 1);
-                mat.SetColor("_BaseColor", Color.Lerp(new Color(0.1f, 0.1f, 0.8f), new Color(0.8f, 0.1f, 0.1f), colorT));
+                Color markerColor = Color.Lerp(
+                    new Color(0.1f, 0.1f, 0.8f),  // 파란색 (과거)
+                    new Color(0.8f, 0.1f, 0.1f),   // 빨간색 (미래)
+                    colorT
+                );
+                mat.color = markerColor;  // _BaseColor 대신 color 사용!
+
                 renderer.material = mat;
 
                 // Collider 제거
@@ -114,6 +127,8 @@ namespace TemporalVR
 
                 timeMarkers.Add(marker);
             }
+
+            Debug.Log($"[TVRFeedback] Created {markerCount} time markers with gradient colors");
         }
 
         void SetupInteractionEffects()
@@ -212,6 +227,29 @@ namespace TemporalVR
             // 모드별 색상으로 컨트롤러 표시
             Gizmos.color = GetModeColor(controller.GetCurrentMode());
             Gizmos.DrawWireCube(transform.position, Vector3.one * 0.1f);
+        }
+        public void UpdateModeColor(TemporalVRController.TemporalMode mode)
+        {
+            Color targetColor = GetModeColor(mode);
+
+            // Timeline Visualizer 직접 참조
+            LineRenderer timeline = GameObject.Find("TimelineVisualizer")?.GetComponent<LineRenderer>();
+            if (timeline != null)
+            {
+                // 모드별로 다른 그라데이션 적용
+                timeline.startColor = targetColor * 0.7f;
+                timeline.endColor = targetColor;
+                Debug.Log($"[TVRFeedback] Timeline color updated to {targetColor}");
+            }
+
+            // Mode Indicators 업데이트
+            if (modeIndicators != null)
+            {
+                foreach (var kvp in modeIndicators)
+                {
+                    kvp.Value.SetActive(kvp.Key == mode);
+                }
+            }
         }
 
         Color GetModeColor(TemporalVRController.TemporalMode mode)

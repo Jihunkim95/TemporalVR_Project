@@ -12,16 +12,16 @@
 - Visual Feedback 시스템 구축 - 테스트 오브젝트 구현: TObject - Visual Feedback 자동생성: TVR_Setup
 
 ## 💻 Git Status
-- **Modified files**: 3
+- **Modified files**: 2
 - **Current branch**: master
 - **Last commit**: 678a2a7 - Merge remote-tracking branch 'origin/master' (16 hours ago)
 
 ## 🔥 Hot Files (Recently Active)
-- `unity/TemporalVR/Assets/Scripts/TemporalVR/TVR_Controller.cs`
-- `unity/TemporalVR/Assets/Scripts/TemporalVR/TVR_Setup.cs`
-- `unity/TemporalVR/obj/Debug/Unity.XR.Interaction.Toolkit.Samples.StarterAssets.csproj.AssemblyReference.cache`
-- `unity/TemporalVR/obj/Debug/Assembly-CSharp.csproj.AssemblyReference.cache`
-- `research/daily_contexts/daily_context_2025-06-27.md`
+- `unity/TemporalVR/Assets/Scripts/TemporalVR/TVR_Feedback.cs.meta`
+- `unity/TemporalVR/Assets/Scripts/TemporalVR/TObject.cs.meta`
+- `automation/morning_start.bat`
+- `unity/TemporalVR/ProjectSettings/TagManager.asset`
+- `unity/TemporalVR/obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache`
 
 ## ⚠️ Current Blockers
 - ✅ No blockers detected
