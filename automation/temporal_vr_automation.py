@@ -254,67 +254,308 @@ class TemporalVRAutomation:
             pass
         
         return blockers if blockers else ["✅ No blockers detected"]
-    
+        
     def update_project_master(self):
-        """project_master.md 업데이트"""
+        """project_master.md 업데이트 - 개선된 버전"""
         git_status = self.get_git_status()
         progress = self.calculate_progress()
         blockers = self.detect_blockers()
         day = self.get_project_day()
+        week = (day - 1) // 7 + 1
+        
+        # 현재 구현 단계 확인
+        current_phase = self._get_development_phase(week)
+        
+        # 주차별 목표 가져오기
+        week_goals = self._get_week_goals(week, day)
+        
+        # 연구 질문 진행률
+        rq_progress = self._get_research_progress(week)
         
         template = f"""# TEMPORAL VR PROJECT MASTER
-Last Updated: {datetime.now().strftime('%Y-%m-%d %H:%M')} (Day {day})
+            Last Updated: {datetime.now().strftime('%Y-%m-%d')} (Day {day})
 
-## 🎯 Project Overview
-**Goal**: Create a VR system where users can model 3D objects by manipulating time as a 4th dimension
-Temporal VR은 단순히 3D 객체를 만드는 것이 아니라, 시간에 따라 변화하는 살아있는 3D 객체를 만드는 것을 목표로 합니다.
-**Target**: SIGGRAPH Asia 2026 Paper Submission
-**Duration**: 11 months (June 2025 - May 2026)
+            ## 🎯 Project Overview
+            **Goal**: Create a VR system where users can model 3D objects by manipulating time as a 4th dimension
 
-## 📊 Current Status
-- **Phase**: Day {day} - {self._get_current_phase(day)}
-- **Days to Deadline**: {330 - day} days
-- **Progress**: {progress:.1f}%
-- **Week**: {(day - 1) // 7 + 1} of 47
+            Temporal VR은 단순히 3D 객체를 만드는 것이 아니라, 시간에 따라 변화하는 살아있는 3D 객체를 만드는 것을 목표로 합니다.
 
-## 🛠️ Tech Stack
-- **Blender 4.4**: Procedural modeling backend
-- **Unity 2023.3 LTS**: VR frontend
-- **OpenXR**: Cross-platform VR support
-- **Cursor AI**: Development assistant
+            **Target**: SIGGRAPH Asia 2026 Paper Submission
+            **Duration**: 11 months (June 2025 - May 2026)
 
-## 📈 Recent Activity
-- **Last Commit**: {git_status['last_commit']}
-- **Current Branch**: {git_status['current_branch']}
-- **Modified Files**: {len(git_status['modified'])}
-- **Active Files**: {', '.join(git_status['modified'][:3]) or 'No pending changes'}
+            ## 🌟 Core Innovation: Temporal Brush System
+            시간을 "칠하는" 혁신적인 인터페이스로, 사용자의 VR 브러시 움직임이 객체의 시간적 변화를 정의합니다.
 
-## 🎯 Current Focus
-- **Primary**: {self.suggest_today_focus()}
-- **Research Question**: {self._get_current_research_focus(day)}
-- **Paper Section**: {self._get_current_paper_focus(progress)}
+            ### Development Phases
+            1. **Phase 1 (Week 2-3)**: Morph-based System
+            - 키프레임 메시 블렌딩
+            - 기본 시간 조작 인터페이스
+            
+            2. **Phase 2 (Week 4-8)**: Hybrid System  
+            - Temporal Brush 데이터 구조
+            - 프로시저럴 요소 도입
+            
+            3. **Phase 3 (Week 9-16)**: Full Procedural System
+            - L-System 기반 성장 알고리즘
+            - Brush 스트로크 → 성장 규칙 변환
+            
+            4. **Phase 4 (Week 17-40)**: Advanced Features
+            - 물리 기반 시뮬레이션
+            - AI 보조 생성
+            - 다중 사용자 협업
 
-## ⚠️ Active Issues
-{chr(10).join(f'- {blocker}' for blocker in blockers)}
+            ## 📊 Current Status
+            - **Phase**: Day {day} - {current_phase['name']}  
+            - **Days to Deadline**: {330 - day} days
+            - **Progress**: {progress:.1f}%
+            - **Week**: {week} of 47
+            - **Current Implementation**: {current_phase['status']}
 
-## 📁 Quick Links
-- Research Notes: `research/daily_notes.md`
-- Blender Scripts: `blender/scripts/`
-- Unity Project: `{self.config["unity_project_path"]}/`
-- Knowledge Base: `knowledge/solutions.md`
-- Experiments: `research/experiments/`
+            ## 🛠️ Tech Stack
+            - **Blender 4.4**: Procedural modeling backend
+            - **Unity 2023.3 LTS**: VR frontend  
+            - **OpenXR**: Cross-platform VR support
+            - **Cursor AI**: Development assistant
 
-## 🎯 Today's Priorities
-1. {self.suggest_today_focus()}
-2. Update research notes with findings
-3. Commit progress with meaningful message
-"""
+            ## 🎯 Week {week} Goals ({week_goals['date_range']})
+            ### Primary: {week_goals['primary']}
+            {week_goals['detailed_goals']}
+
+            ## 🚀 Immediate Next Steps
+            {self._format_next_steps(day, week)}
+
+            ## 📈 Recent Activity
+            - **Last Commit**: {git_status['last_commit']}
+            - **Current Branch**: {git_status['current_branch']}
+            - **Completed**: {self._get_recent_completion(git_status)}
+
+            ## 🎨 Research Questions Progress
+            {rq_progress}
+
+            ## 📁 Project Structure
+            ```
+            temporal-vr-modeling/
+            ├── unity/TemporalVR/          # Unity VR 프로젝트
+            │   ├── Scripts/
+            │   │   ├── Core/             # 핵심 시스템
+            │   │   ├── Morphing/         # 모프 시스템 {self._phase_status(week, 2)}
+            │   │   ├── Procedural/       # 프로시저럴 {self._phase_status(week, 9)}
+            │   │   └── UI/               # VR UI
+            │   └── Prefabs/
+            ├── blender/                   # Blender 백엔드
+            ├── research/                  # 연구 노트
+            └── docs/                      # 문서
+            ```
+
+            ## 🎯 Milestones
+            {self._generate_milestones(week)}
+
+            ## ⚠️ Active Issues
+            {self._format_blockers(blockers)}
+
+            ## 📁 Quick Links
+            - Research Notes: `research/daily_notes.md`
+            - Blender Scripts: `blender/scripts/`
+            - Unity Project: `unity/TemporalVR/`
+            - Knowledge Base: `knowledge/solutions.md`
+            - Experiments: `research/experiments/`
+
+            ## 💡 Today's Focus
+            **Objective**: {self._get_today_objective(day, week)}
+            {self._get_today_tasks(day, week)}"""
         
         master_file = self.project_root / "project_master.md"
         with open(master_file, 'w', encoding='utf-8') as f:
             f.write(template)
         
-        print(f"✅ Project master updated (Day {day})")
+        print(f"✅ Project master updated (Day {day}, Week {week})")
+
+    def _get_development_phase(self, week):
+        """현재 개발 단계 반환"""
+        if week <= 1:
+            return {"name": "Foundation & Setup", "status": "Basic VR Controller System ✅"}
+        elif week <= 3:
+            return {"name": "Phase 1 - Morph-based System", "status": "Implementing Keyframe Morphing"}
+        elif week <= 8:
+            return {"name": "Phase 2 - Hybrid System", "status": "Temporal Brush Integration"}
+        elif week <= 16:
+            return {"name": "Phase 3 - Procedural System", "status": "L-System Implementation"}
+        else:
+            return {"name": "Phase 4 - Advanced Features", "status": "Physics & AI Integration"}
+
+    def _get_week_goals(self, week, day):
+        """주차별 목표 반환"""
+        week_start = (week - 1) * 7 + 1
+        week_end = min(week * 7, 330)
+        date_range = f"Day {week_start}-{week_end}"
+        
+        goals = {
+            1: {
+                "primary": "Foundation & VR Setup",
+                "detailed_goals": """- ✅ VR Controller System Setup
+                - ✅ 4-Mode Interaction (Scrub/Paint/Sculpt/Preview)
+                - ✅ Visual Feedback System
+                - ✅ Basic Temporal Object (TObject)"""
+            },
+            2: {
+                "primary": "Implement Morph-based Temporal System",
+                "detailed_goals": f"""1. **Day 8-9**: Basic Mesh Morphing
+                - {'✅' if day > 9 else '[ ]'} Create MorphableTemporalObject.cs
+                - {'✅' if day > 9 else '[ ]'} Implement keyframe system
+                - {'✅' if day > 9 else '[ ]'} Test with simple shapes (cube → sphere)
+                
+                2. **Day 10-11**: Temporal Brush Foundation
+                - {'✅' if day > 11 else '[ ]'} Create TemporalBrushData.cs
+                - {'✅' if day > 11 else '[ ]'} Implement brush stroke recording
+                - {'✅' if day > 11 else '[ ]'} Visual feedback for brush
+                
+                3. **Day 12-13**: Integration & Testing
+                - {'✅' if day > 13 else '[ ]'} Connect brush to morph system
+                - {'✅' if day > 13 else '[ ]'} Create first demo: Growing tree
+                - {'✅' if day > 13 else '[ ]'} Performance optimization
+                
+                4. **Day 14**: Documentation & Review
+                - {'✅' if day > 14 else '[ ]'} Update research notes
+                - {'✅' if day > 14 else '[ ]'} Record demo video
+                - {'✅' if day > 14 else '[ ]'} Plan Week 3"""
+            },
+            3: {
+                "primary": "Advanced Morphing & Brush Control",
+                "detailed_goals": f"""1. **Day 15-16**: Temporal Brush Control
+                - {'✅' if day > 16 else '[ ]'} Brush controls morph speed
+                - {'✅' if day > 16 else '[ ]'} Curve editor for interpolation
+                
+                2. **Day 17-18**: Multi-object System
+                - {'✅' if day > 18 else '[ ]'} Multiple temporal objects
+                - {'✅' if day > 18 else '[ ]'} Synchronization system
+                
+                3. **Day 19-20**: Blender Integration Start
+                - {'✅' if day > 20 else '[ ]'} TCP/IP communication
+                - {'✅' if day > 20 else '[ ]'} Data serialization"""
+            },
+            4: {
+                "primary": "Temporal Brush MVP",
+                "detailed_goals": "- Complete brush system\n- User testing prep"
+            }
+
+            # 더 많은 주차 추가...
+        }
+        
+        default_goal = {
+            "primary": f"Week {week} Implementation",
+            "detailed_goals": "- Continue development according to phase plan"
+        }
+        
+        goal = goals.get(week, default_goal)
+        goal["date_range"] = date_range
+        return goal
+
+    def _format_next_steps(self, day, week):
+        """다음 단계 포맷팅"""
+        if week == 1:
+            return """1. Week 1 review and documentation
+    2. Prepare for Phase 1 implementation
+    3. Set up morphing system architecture"""
+        elif week == 2:
+            if day <= 9:
+                return """1. Create `MorphableTemporalObject.cs` - 모프 기반 시간 객체
+    2. Create `TemporalBrushData.cs` - 브러시 데이터 구조
+    3. Create `TemporalKeyframe.cs` - 키프레임 시스템
+    4. Update `TObject.cs` - 모프 기능 추가
+    5. Create test scene with morphing objects"""
+            else:
+                return """1. Complete Temporal Brush implementation
+    2. Create demo scene with growing tree
+    3. Test performance and optimize
+    4. Document findings for research notes"""
+        # 더 많은 주차별 다음 단계...
+        return "1. Continue implementation according to phase plan"
+
+    def _get_research_progress(self, week):
+        """연구 질문별 진행률 반환"""
+        rq1_progress = min(20 + (week - 1) * 5, 100)
+        rq2_progress = max(0, (week - 4) * 10) if week > 4 else 0
+        rq3_progress = max(0, (week - 16) * 5) if week > 16 else 0
+        
+        def progress_bar(percent):
+            filled = int(percent / 10)
+            return f"[{percent}% {'▓' * filled}{'░' * (10 - filled)}]"
+        
+        return f"""- **RQ1**: Intuitive time dimension representation in VR {progress_bar(rq1_progress)}
+    - **RQ2**: Real-time procedural generation {progress_bar(rq2_progress)}
+    - **RQ3**: User study on temporal modeling {progress_bar(rq3_progress)}"""
+
+    def _phase_status(self, current_week, phase_start_week):
+        """단계별 상태 표시"""
+        if current_week < phase_start_week:
+            return "(Future)"
+        elif current_week == phase_start_week:
+            return "(Starting)"
+        else:
+            return "(Active)"
+
+    def _generate_milestones(self, current_week):
+        """마일스톤 생성"""
+        milestones = [
+            (2, "Basic Morphing System"),
+            (4, "Temporal Brush MVP"),
+            (8, "Hybrid System Demo"),
+            (12, "First Paper Draft"),
+            (16, "Procedural System"),
+            (20, "User Study"),
+            (40, "Final Paper"),
+            (47, "SIGGRAPH Submission")
+        ]
+        
+        result = []
+        for week, title in milestones:
+            if current_week > week:
+                status = "✅"
+            elif current_week == week:
+                status = "🔄"
+            else:
+                status = "[ ]"
+            result.append(f"- {status} **Week {week}**: {title}")
+        
+        return "\n".join(result)
+
+    def _get_today_objective(self, day, week):
+        """오늘의 목표 반환"""
+        if week == 1:
+            return "Complete Week 1 review and prepare for Phase 1"
+        elif week == 2:
+            if day <= 9:
+                return "Begin Phase 1 - Morph-based System"
+            elif day <= 11:
+                return "Implement Temporal Brush Foundation"
+            else:
+                return "Integration and Testing"
+        # 더 많은 주차별 목표...
+        return f"Continue Week {week} implementation"
+
+    def _get_today_tasks(self, day, week):
+        """오늘의 작업 목록"""
+        if week == 2 and day == 8:
+            return """1. Review Week 1 accomplishments
+    2. Create morphing system architecture
+    3. Implement first test case"""
+        # 더 많은 날짜별 작업...
+        return """1. Continue current implementation
+    2. Test and debug
+    3. Update documentation"""
+
+    def _format_blockers(self, blockers):
+        """블로커 포맷팅"""
+        if not blockers:
+            return "- ✅ No blockers detected"
+        return "\n".join(f"- ⚠️ {blocker}" for blocker in blockers)
+
+    def _get_recent_completion(self, git_status):
+        """최근 완료 항목"""
+        # Git 커밋 메시지에서 완료 항목 추출
+        if "VR Controller" in git_status.get('last_commit', ''):
+            return "VR Controller 4-mode system (Scrub/Paint/Sculpt/Preview)"
+        return "See git log for details"
     
     def create_daily_context(self):
         """daily_context.md 생성"""

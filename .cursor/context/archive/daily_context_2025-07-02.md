@@ -12,16 +12,16 @@
 - VR 컨트롤러 모드 전환 시스템 완성 - 4가지 모드 구현 (Scrub, Paint, Sculpt, Preview) - G키로 모드 순환
 
 ## 💻 Git Status
-- **Modified files**: 2
+- **Modified files**: 1
 - **Current branch**: master
-- **Last commit**: cb9a751 - Docs: 자동스크립트 및 project_master수정 (3 minutes ago)
+- **Last commit**: 0c52670 - Merge remote-tracking branch 'origin/master' (18 hours ago)
 
 ## 🔥 Hot Files (Recently Active)
-- `.cursor/context/archive/daily_context_2025-07-01.md`
-- `unity/TemporalVR/Assets/Fantasy Skybox FREE.meta`
-- `unity/TemporalVR/Assets/Scripts/TemporalVR/TVR_Controller.cs`
-- `unity/TemporalVR/obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache`
 - `unity/TemporalVR/Assets/Scripts/TemporalVR/TVR_Feedback.cs`
+- `unity/TemporalVR/UserSettings/EditorUserSettings.asset`
+- `.gitignore`
+- `unity/TemporalVR/Assets/Scripts/TemporalVR/TObject.cs`
+- `unity/TemporalVR/UserSettings/Layouts/default-2022.dwlt`
 
 ## ⚠️ Current Blockers
 - ✅ No blockers detected
