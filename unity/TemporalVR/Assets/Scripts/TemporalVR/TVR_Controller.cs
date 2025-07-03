@@ -247,7 +247,7 @@ namespace TemporalVR
                 Debug.Log($"[Scrub] Calculated Time: {currentTimePosition}");
 
                 OnTimeChanged(currentTimePosition);
-                // 모든 TObject 업데이트
+                // 모든 TMorphObject 업데이트
                 TMorphObj[] allMorphObjs = FindObjectsOfType<TMorphObj>();
                 foreach (var morphObj in allMorphObjs)
                 {
@@ -371,12 +371,12 @@ namespace TemporalVR
     {
         public virtual void ApplyTemporalBrush(Vector3 position, float strength, float time)
         {
-            Debug.Log($"[TemporalObject] Brush applied at {position} with strength {strength} at time {time}");
+            //Debug.Log($"[TemporalObject] Brush applied at {position} with strength {strength} at time {time}");
         }
 
         public virtual void SetTemporalRange(float startTime, float endTime)
         {
-            Debug.Log($"[TemporalObject] Time range set: {startTime} - {endTime}");
+            //Debug.Log($"[TemporalObject] Time range set: {startTime} - {endTime}");
         }
     }
 

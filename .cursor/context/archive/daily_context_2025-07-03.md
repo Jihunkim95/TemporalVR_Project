@@ -12,16 +12,16 @@
 - None
 
 ## 💻 Git Status
-- **Modified files**: 3
+- **Modified files**: 2
 - **Current branch**: master
 - **Last commit**: 2a003fd - Day 7: 6일차 복습 (23 hours ago)
 
 ## 🔥 Hot Files (Recently Active)
-- `unity/TemporalVR/Assets/Scenes/TemporalVRRig.unity`
-- `research/daily_contexts/daily_context_2025-07-02.md`
-- `.cursor/context/archive/daily_context_2025-07-02.md`
-- `research/daily_notes.md`
 - `automation/temporal_vr_automation.py`
+- `daily_context.md`
+- `research/daily_contexts/daily_context_2025-07-02.md`
+- `unity/TemporalVR/Assets/Scenes/TemporalVRRig.unity`
+- `research/daily_notes.md`
 
 ## ⚠️ Current Blockers
 - ✅ No blockers detected
