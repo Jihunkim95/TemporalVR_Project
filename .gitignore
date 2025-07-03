@@ -112,3 +112,15 @@ unity/TemporalVR/Assets/Samples/
 unity/TemporalVR/.vs/TemporalVR/CopilotIndices/17.13.433.20974/CodeChunks.db
 unity/TemporalVR/.vs/TemporalVR/CopilotIndices
 unity/TemporalVR/Assets/Fantasy Skybox FREE/
+
+unity/TemporalVR/Assets/Plugins/
+
+unity/TemporalVR/Assets/vHierarchy/
+
+unity/TemporalVR/Assets/vHierarchy.meta
+
+unity/TemporalVR/Assets/Plugins.meta
+
+*.cache
+
+unity/TemporalVR/obj/Debug/

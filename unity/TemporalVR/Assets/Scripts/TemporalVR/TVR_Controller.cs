@@ -247,13 +247,13 @@ namespace TemporalVR
                 Debug.Log($"[Scrub] Calculated Time: {currentTimePosition}");
 
                 OnTimeChanged(currentTimePosition);
-
                 // 모든 TObject 업데이트
-                TObject[] allTObjects = FindObjectsOfType<TObject>();
-                foreach (var tObj in allTObjects)
+                TMorphObj[] allMorphObjs = FindObjectsOfType<TMorphObj>();
+                foreach (var morphObj in allMorphObjs)
                 {
-                    tObj.UpdateToTime(currentTimePosition);
+                    morphObj.UpdateToTime(currentTimePosition);
                 }
+
             }
         }
 

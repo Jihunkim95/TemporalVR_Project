@@ -1,4 +1,7 @@
-﻿using UnityEngine;
+﻿/*
+ * legacy Code for TemporalVR
+ */
+using UnityEngine;
 using System.Collections;
 
 namespace TemporalVR
