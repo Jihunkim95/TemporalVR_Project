@@ -7,207 +7,220 @@ namespace TemporalVR
     public class TMorphTest : TMorphObj
     {
         [Header("Test Configuration")]
-        public bool autoGenerateKeyframes = true;
-        public float morphDuration = 10f;  // 전체 모핑 시간
+        public bool autoGenerateKeyframes = false;  // 기본값 false로 변경
+        public float morphDuration = 10f;
 
         [Header("Mesh Sources")]
-        [Tooltip("직접 메시 할당 (권장)")]
-        public Mesh[] directMeshes;  // 우선순위 1
-
-        [Tooltip("게임오브젝트에서 메시 추출")]
-        public GameObject[] meshGameObjects;  // 우선순위 2
+        public Mesh[] directMeshes;
+        public GameObject[] meshGameObjects;
 
         [Header("Color Animation")]
         public bool animateColor = true;
-        public Gradient colorOverTime;  // 시간에 따른 색상 변화
+        public Gradient colorOverTime;
 
         [Header("Debug")]
         public bool showDebugInfo = true;
 
+        protected override void Awake()
+        {
+            base.Awake();  // TMorphObj의 초기화 먼저 실행
+        }
+
         void Start()
         {
-            // 기본 Gradient 설정
+            InitializeGradient();
+
+            // 키프레임이 없으면 더미 데이터 생성
+            if (keyframes == null || keyframes.Count < 2)
+            {
+                Debug.Log("[TMorphTest] No keyframes found. Creating dummy data...");
+                CreateDummySetup();
+            }
+        }
+
+        void InitializeGradient()
+        {
             if (colorOverTime == null || colorOverTime.colorKeys.Length == 0)
             {
-                colorOverTime = new Gradient();
-                GradientColorKey[] colorKeys = new GradientColorKey[3];
-                colorKeys[0] = new GradientColorKey(Color.blue, 0f);
-                colorKeys[1] = new GradientColorKey(Color.cyan, 0.5f);
-                colorKeys[2] = new GradientColorKey(Color.red, 1f);
-
-                GradientAlphaKey[] alphaKeys = new GradientAlphaKey[2];
-                alphaKeys[0] = new GradientAlphaKey(1f, 0f);
-                alphaKeys[1] = new GradientAlphaKey(1f, 1f);
-
-                colorOverTime.SetKeys(colorKeys, alphaKeys);
-            }
-
-            // 키프레임 생성 또는 로드
-            if (autoGenerateKeyframes && HasValidMeshSources())
-            {
-                GenerateKeyframes();
-                if (autoSave) SaveMorphData();
-            }
-            else if (ES3.KeyExists(saveKey + gameObject.name + "_keyframes"))
-            {
-                LoadMorphData();
-                if (showDebugInfo)
-                    Debug.Log($"[TMorphTest] Loaded {keyframes.Count} keyframes from save");
+                colorOverTime = CreateDefaultGradient();
             }
         }
 
-        bool HasValidMeshSources()
+        Gradient CreateDefaultGradient()
         {
-            return (directMeshes != null && directMeshes.Length > 0) ||
-                   (meshGameObjects != null && meshGameObjects.Length > 0);
+            Gradient gradient = new Gradient();
+            GradientColorKey[] colorKeys = new GradientColorKey[]
+            {
+                new GradientColorKey(Color.blue, 0f),
+                new GradientColorKey(Color.cyan, 0.5f),
+                new GradientColorKey(Color.red, 1f)
+            };
+            GradientAlphaKey[] alphaKeys = new GradientAlphaKey[]
+            {
+                new GradientAlphaKey(1f, 0f),
+                new GradientAlphaKey(1f, 1f)
+            };
+            gradient.SetKeys(colorKeys, alphaKeys);
+            return gradient;
         }
 
-        void GenerateKeyframes()
+        void CreateDummySetup()
         {
-            keyframes.Clear();
-            List<Mesh> meshList = CollectMeshes();
+            // 1. 간단한 메시 생성
+            Mesh dummyMesh = CreateSimpleQuadMesh();
+            SetWorkingMesh(dummyMesh);
 
-            if (meshList.Count < 2)
-            {
-                Debug.LogWarning("[TMorphTest] Need at least 2 meshes for morphing!");
-                return;
-            }
-
-            // 정점 수 검증
-            int vertexCount = meshList[0].vertexCount;
-            bool allMatch = true;
-
-            for (int i = 1; i < meshList.Count; i++)
-            {
-                if (meshList[i].vertexCount != vertexCount)
-                {
-                    Debug.LogError($"[TMorphTest] Vertex count mismatch! Mesh 0: {vertexCount}, Mesh {i}: {meshList[i].vertexCount}");
-                    allMatch = false;
-                }
-            }
-
-            if (!allMatch)
-            {
-                Debug.LogError("[TMorphTest] All meshes must have the same vertex count!");
-                return;
-            }
-
-            // 키프레임 생성
-            for (int i = 0; i < meshList.Count; i++)
-            {
-                TKeyframe kf = new TKeyframe();
-
-                // 시간 계산
-                float normalizedTime = (meshList.Count > 1) ?
-                    i / (float)(meshList.Count - 1) : 0f;
-                kf.time = normalizedTime * morphDuration;
-
-                // 메시 데이터 캡처
-                kf.CaptureFromMesh(meshList[i]);
-
-                // 색상 설정
-                if (animateColor)
-                {
-                    kf.color = colorOverTime.Evaluate(normalizedTime);
-                }
-                else
-                {
-                    kf.color = Color.white;
-                }
-
-                keyframes.Add(kf);
-
-                if (showDebugInfo)
-                {
-                    Debug.Log($"[TMorphTest] Keyframe {i}: Time={kf.time:F2}s, Vertices={kf.vertices.Length}, Color={kf.color}");
-                }
-            }
-
-            Debug.Log($"[TMorphTest] Generated {keyframes.Count} keyframes over {morphDuration} seconds");
+            // 2. 더미 키프레임 생성
+            CreateDummyKeyframes();
         }
 
-        List<Mesh> CollectMeshes()
+        Mesh CreateSimpleQuadMesh()
         {
-            List<Mesh> meshes = new List<Mesh>();
+            Mesh mesh = new Mesh();
+            mesh.name = "SimpleQuad";
 
-            // 우선순위 1: Direct Meshes
-            if (directMeshes != null && directMeshes.Length > 0)
+            mesh.vertices = new Vector3[]
             {
-                foreach (var mesh in directMeshes)
-                {
-                    if (mesh != null)
-                        meshes.Add(mesh);
-                }
+                new Vector3(-1f, 0f, -1f),
+                new Vector3( 1f, 0f, -1f),
+                new Vector3(-1f, 0f,  1f),
+                new Vector3( 1f, 0f,  1f)
+            };
 
-                if (showDebugInfo)
-                    Debug.Log($"[TMorphTest] Using {meshes.Count} direct meshes");
-
-                return meshes;
-            }
-
-            // 우선순위 2: GameObject에서 추출
-            if (meshGameObjects != null && meshGameObjects.Length > 0)
+            mesh.triangles = new int[] { 0, 2, 1, 1, 2, 3 };
+            mesh.normals = new Vector3[] { Vector3.up, Vector3.up, Vector3.up, Vector3.up };
+            mesh.uv = new Vector2[]
             {
-                foreach (var go in meshGameObjects)
-                {
-                    if (go != null)
-                    {
-                        MeshFilter mf = go.GetComponent<MeshFilter>();
-                        if (mf != null && mf.sharedMesh != null)
-                        {
-                            meshes.Add(mf.sharedMesh);
-                        }
-                    }
-                }
+                new Vector2(0, 0),
+                new Vector2(1, 0),
+                new Vector2(0, 1),
+                new Vector2(1, 1)
+            };
 
-                if (showDebugInfo)
-                    Debug.Log($"[TMorphTest] Extracted {meshes.Count} meshes from GameObjects");
-            }
-
-            return meshes;
+            mesh.RecalculateBounds();
+            return mesh;
         }
 
-        // 테스트 헬퍼 메서드들
-        [ContextMenu("Generate Test Keyframes")]
-        void ForceGenerateKeyframes()
-        {
-            GenerateKeyframes();
-            Debug.Log("[TMorphTest] Manually generated keyframes");
-        }
-
-        [ContextMenu("Clear Keyframes")]
-        void ClearKeyframes()
+        void CreateDummyKeyframes()
         {
             keyframes.Clear();
-            Debug.Log("[TMorphTest] Cleared all keyframes");
+
+            // 3개의 간단한 키프레임
+            keyframes.Add(CreateKeyframe(0f, 0f, Color.blue));      // 평평
+            keyframes.Add(CreateKeyframe(5f, 0.3f, Color.cyan));    // 중간
+            keyframes.Add(CreateKeyframe(10f, 0.5f, Color.red));    // 최대
+
+            Debug.Log($"[TMorphTest] Created {keyframes.Count} dummy keyframes");
         }
 
-        [ContextMenu("Preview at 50%")]
-        void PreviewMidpoint()
+        TKeyframe CreateKeyframe(float time, float waveHeight, Color color)
         {
-            UpdateToTime(morphDuration * 0.5f);
+            TKeyframe kf = new TKeyframe();
+            kf.time = time;
+            kf.color = color;
+
+            // 웨이브 패턴의 정점들
+            kf.vertices = new Vector3[]
+            {
+                new Vector3(-1f, waveHeight, -1f),
+                new Vector3( 1f, -waveHeight, -1f),
+                new Vector3(-1f, -waveHeight,  1f),
+                new Vector3( 1f, waveHeight,  1f)
+            };
+
+            kf.normals = new Vector3[] { Vector3.up, Vector3.up, Vector3.up, Vector3.up };
+
+            return kf;
         }
 
-        // 기본 테스트 메시 생성
-        [ContextMenu("Create Cube to Sphere Test")]
-        void CreateDefaultTest()
+        void Update()
         {
-            // ProBuilder나 기본 Unity 메시 사용
-            directMeshes = new Mesh[2];
+            HandleTestControls();
+        }
 
-            // 큐브와 구를 임시로 생성해서 메시 추출
-            GameObject tempCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            GameObject tempSphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        void HandleTestControls()
+        {
+            // 스페이스: 자동 재생
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                StartCoroutine(PlayAnimation());
+            }
 
-            directMeshes[0] = tempCube.GetComponent<MeshFilter>().sharedMesh;
-            directMeshes[1] = tempSphere.GetComponent<MeshFilter>().sharedMesh;
+            // 좌우 화살표: 수동 제어
+            if (Input.GetKey(KeyCode.LeftArrow))
+            {
+                currentTime = Mathf.Max(0, currentTime - Time.deltaTime * 2f);
+                UpdateToTime(currentTime);
+            }
+            else if (Input.GetKey(KeyCode.RightArrow))
+            {
+                currentTime = Mathf.Min(morphDuration, currentTime + Time.deltaTime * 2f);
+                UpdateToTime(currentTime);
+            }
 
-            // 임시 객체 삭제
-            DestroyImmediate(tempCube);
-            DestroyImmediate(tempSphere);
+            // R: 리셋
+            if (Input.GetKeyDown(KeyCode.R))
+            {
+                currentTime = 0f;
+                UpdateToTime(0f);
+            }
 
-            Debug.Log("[TMorphTest] Created default cube-to-sphere test meshes");
-            Debug.LogWarning("Note: Unity's default cube and sphere have different vertex counts. Use subdivided meshes for better results!");
+
+        }
+
+        float currentTime = 0f;
+
+        IEnumerator PlayAnimation()
+        {
+            currentTime = 0f;
+            while (currentTime < morphDuration)
+            {
+                UpdateToTime(currentTime);
+                currentTime += Time.deltaTime;
+                yield return null;
+            }
+            UpdateToTime(morphDuration);
+        }
+
+        void OnDrawGizmos()
+        {
+            if (!showDebugInfo || keyframes == null || keyframes.Count == 0) return;
+
+            // 타임라인 시각화
+            for (int i = 0; i < keyframes.Count; i++)
+            {
+                float t = keyframes[i].time / morphDuration;
+                Vector3 pos = transform.position + Vector3.right * (t * 4f - 2f) + Vector3.up * 2f;
+
+                Gizmos.color = colorOverTime.Evaluate(t);
+                Gizmos.DrawWireCube(pos, Vector3.one * 0.2f);
+
+#if UNITY_EDITOR
+                UnityEditor.Handles.Label(pos + Vector3.up * 0.3f, $"{keyframes[i].time:F1}s");
+#endif
+            }
+
+            // 현재 시간 표시
+            float currentT = currentTime / morphDuration;
+            Vector3 currentPos = transform.position + Vector3.right * (currentT * 4f - 2f) + Vector3.up * 2f;
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(currentPos, 0.15f);
+        }
+
+        // Context Menu 메서드들
+        [ContextMenu("Reset to Dummy")]
+        void ResetToDummy()
+        {
+            CreateDummySetup();
+        }
+
+        [ContextMenu("Log Status")]
+        void LogStatus()
+        {
+            Debug.Log($"=== TMorphTest Status ===");
+            Debug.Log($"Keyframes: {keyframes.Count}");
+            Debug.Log($"Working Mesh: {(workingMesh != null ? workingMesh.name : "null")}");
+            Debug.Log($"Mesh Vertices: {(workingMesh != null ? workingMesh.vertexCount : 0)}");
         }
     }
 }

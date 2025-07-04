@@ -6,8 +6,8 @@ namespace TemporalVR
     [System.Serializable]
     public class TKeyframe
     {
-        public float time;
-        public Vector3[] vertices;      // 메시 정점 데이터 직접 저장
+        public float time; //몇 초 시점인지 
+        public Vector3[] vertices;      // 그 시점의 3D 형태
         public Vector3[] normals;       // 법선 데이터
         public Color color;
 
