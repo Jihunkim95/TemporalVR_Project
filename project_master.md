@@ -73,7 +73,7 @@
     5. Create test scene with morphing objects
 
             ## 📈 Recent Activity
-            - **Last Commit**: 8dbc8a4 - Day 8: TMorphObj,TKeyframe,TMorphData, TMorphTest 만들었지만, 테스트중 오류가 떠서 내일 다시해야함 (18 hours ago)
+            - **Last Commit**: df84f85 - Feat: TMorpthTest,TMorpthObj중심으로: quad mesh morphing개발 (16 seconds ago)
             - **Current Branch**: master
             - **Completed**: See git log for details
 
