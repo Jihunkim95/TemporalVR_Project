@@ -12,7 +12,7 @@
 - None
 
 ## 💻 Git Status
-- **Modified files**: 5
+- **Modified files**: 3
 - **Current branch**: master
 - **Last commit**: 0e836f7 - Day 9: successfully morphed time! Next: Make it work in VR (3 days ago)
 

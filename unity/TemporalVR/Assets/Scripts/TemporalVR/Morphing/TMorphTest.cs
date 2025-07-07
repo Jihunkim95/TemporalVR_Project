@@ -30,11 +30,19 @@ namespace TemporalVR
         {
             InitializeGradient();
 
+            // 항상 메시가 있는지 확인
+            if (meshFilter.sharedMesh == null && workingMesh == null)
+            {
+                Debug.Log("[TMorphTest] No mesh found. Creating default quad...");
+                Mesh mesh = CreateSimpleQuadMesh();
+                SetWorkingMesh(mesh);
+            }
+
             // 키프레임이 없으면 더미 데이터 생성
             if (keyframes == null || keyframes.Count < 2)
             {
                 Debug.Log("[TMorphTest] No keyframes found. Creating dummy data...");
-                CreateDummySetup();
+                CreateDummyKeyframes();  // 메시는 이미 위에서 생성됨
             }
         }
 
@@ -133,9 +141,307 @@ namespace TemporalVR
             return kf;
         }
 
+        // ========== 새로운 변형 메서드들 추가 ==========
+
+        [ContextMenu("Create Sphere Morph")]
+        void CreateSphereMorph()
+        {
+            keyframes.Clear();
+            morphDuration = 10f;
+
+            // Quad → Sphere 변형
+            keyframes.Add(CreateQuadKeyframe(0f));
+            keyframes.Add(CreateDomeKeyframe(3f));
+            keyframes.Add(CreateSphereKeyframe(7f));
+            keyframes.Add(CreatePerfectSphereKeyframe(10f));
+
+            Debug.Log("[TMorphTest] Created Sphere Morph keyframes");
+        }
+
+        TKeyframe CreateQuadKeyframe(float time)
+        {
+            TKeyframe kf = new TKeyframe();
+            kf.time = time;
+            kf.color = colorOverTime.Evaluate(time / morphDuration);
+
+            kf.vertices = new Vector3[]
+            {
+                new Vector3(-1f, 0f, -1f),
+                new Vector3( 1f, 0f, -1f),
+                new Vector3(-1f, 0f,  1f),
+                new Vector3( 1f, 0f,  1f)
+            };
+
+            kf.normals = new Vector3[] { Vector3.up, Vector3.up, Vector3.up, Vector3.up };
+            return kf;
+        }
+
+        TKeyframe CreateDomeKeyframe(float time)
+        {
+            TKeyframe kf = new TKeyframe();
+            kf.time = time;
+            kf.color = colorOverTime.Evaluate(time / morphDuration);
+
+            // 돔 형태
+            kf.vertices = new Vector3[]
+            {
+                new Vector3(-0.8f, 0.5f, -0.8f),
+                new Vector3( 0.8f, 0.5f, -0.8f),
+                new Vector3(-0.8f, 0.5f,  0.8f),
+                new Vector3( 0.8f, 0.5f,  0.8f)
+            };
+
+            kf.normals = new Vector3[]
+            {
+                new Vector3(-0.5f, 0.5f, -0.5f).normalized,
+                new Vector3( 0.5f, 0.5f, -0.5f).normalized,
+                new Vector3(-0.5f, 0.5f,  0.5f).normalized,
+                new Vector3( 0.5f, 0.5f,  0.5f).normalized
+            };
+
+            return kf;
+        }
+
+        TKeyframe CreateSphereKeyframe(float time)
+        {
+            TKeyframe kf = new TKeyframe();
+            kf.time = time;
+            kf.color = colorOverTime.Evaluate(time / morphDuration);
+
+            // 더 구체적인 형태
+            kf.vertices = new Vector3[]
+            {
+                new Vector3(-0.6f, 0.8f, -0.6f),
+                new Vector3( 0.6f, 0.8f, -0.6f),
+                new Vector3(-0.6f, 0.8f,  0.6f),
+                new Vector3( 0.6f, 0.8f,  0.6f)
+            };
+
+            kf.normals = new Vector3[]
+            {
+                new Vector3(-1, 1, -1).normalized,
+                new Vector3( 1, 1, -1).normalized,
+                new Vector3(-1, 1,  1).normalized,
+                new Vector3( 1, 1,  1).normalized
+            };
+
+            return kf;
+        }
+
+        TKeyframe CreatePerfectSphereKeyframe(float time)
+        {
+            TKeyframe kf = new TKeyframe();
+            kf.time = time;
+            kf.color = colorOverTime.Evaluate(time / morphDuration);
+
+            // 완전한 구 형태 근사
+            float r = 0.5f;
+            kf.vertices = new Vector3[]
+            {
+                new Vector3(-r, r * 1.4f, -r),
+                new Vector3( r, r * 1.4f, -r),
+                new Vector3(-r, r * 1.4f,  r),
+                new Vector3( r, r * 1.4f,  r)
+            };
+
+            // 구체의 normal
+            kf.normals = new Vector3[4];
+            for (int i = 0; i < 4; i++)
+            {
+                kf.normals[i] = kf.vertices[i].normalized;
+            }
+
+            return kf;
+        }
+
+        [ContextMenu("Create Star Morph")]
+        void CreateStarMorph()
+        {
+            keyframes.Clear();
+            morphDuration = 10f;
+
+            // Quad → Star 변형
+            keyframes.Add(CreateQuadKeyframe(0f));
+            keyframes.Add(CreateDiamondKeyframe(3f));
+            keyframes.Add(CreateStarKeyframe(7f));
+            keyframes.Add(CreateSpikeyStarKeyframe(10f));
+
+            Debug.Log("[TMorphTest] Created Star Morph keyframes");
+        }
+
+        TKeyframe CreateDiamondKeyframe(float time)
+        {
+            TKeyframe kf = new TKeyframe();
+            kf.time = time;
+            kf.color = colorOverTime.Evaluate(time / morphDuration);
+
+            // 다이아몬드 형태
+            kf.vertices = new Vector3[]
+            {
+                new Vector3(-1.2f, 0f, 0f),     // 왼쪽
+                new Vector3( 0f, 0f, -1.2f),    // 위
+                new Vector3( 1.2f, 0f, 0f),     // 오른쪽
+                new Vector3( 0f, 0f,  1.2f)     // 아래
+            };
+
+            kf.normals = new Vector3[] { Vector3.up, Vector3.up, Vector3.up, Vector3.up };
+            return kf;
+        }
+
+        TKeyframe CreateStarKeyframe(float time)
+        {
+            TKeyframe kf = new TKeyframe();
+            kf.time = time;
+            kf.color = colorOverTime.Evaluate(time / morphDuration);
+
+            // 별 형태
+            kf.vertices = new Vector3[]
+            {
+                new Vector3(-1.8f, 0.2f, -0.3f),    // 왼쪽 뾰족
+                new Vector3( 0.3f, 0.2f, -1.8f),    // 위 뾰족
+                new Vector3( 1.8f, 0.2f,  0.3f),    // 오른쪽 뾰족
+                new Vector3(-0.3f, 0.2f,  1.8f)     // 아래 뾰족
+            };
+
+            kf.normals = new Vector3[] { Vector3.up, Vector3.up, Vector3.up, Vector3.up };
+            return kf;
+        }
+
+        TKeyframe CreateSpikeyStarKeyframe(float time)
+        {
+            TKeyframe kf = new TKeyframe();
+            kf.time = time;
+            kf.color = colorOverTime.Evaluate(time / morphDuration);
+
+            // 더 뾰족한 별
+            kf.vertices = new Vector3[]
+            {
+                new Vector3(-2.5f, 0.5f, 0f),
+                new Vector3( 0f, 0.5f, -2.5f),
+                new Vector3( 2.5f, 0.5f, 0f),
+                new Vector3( 0f, 0.5f,  2.5f)
+            };
+
+            kf.normals = new Vector3[] { Vector3.up, Vector3.up, Vector3.up, Vector3.up };
+            return kf;
+        }
+
+        [ContextMenu("Create Flower Growth")]
+        void CreateFlowerGrowth()
+        {
+            keyframes.Clear();
+            morphDuration = 12f;
+
+            // 씨앗 → 새싹 → 꽃
+            keyframes.Add(CreateSeedKeyframe(0f));
+            keyframes.Add(CreateSproutKeyframe(3f));
+            keyframes.Add(CreateBudKeyframe(6f));
+            keyframes.Add(CreateFlowerKeyframe(10f));
+
+            Debug.Log("[TMorphTest] Created Flower Growth keyframes");
+        }
+
+        TKeyframe CreateSeedKeyframe(float time)
+        {
+            TKeyframe kf = new TKeyframe();
+            kf.time = time;
+            kf.color = new Color(0.4f, 0.3f, 0.2f); // 갈색
+
+            // 작은 씨앗
+            kf.vertices = new Vector3[]
+            {
+                new Vector3(-0.1f, 0f, -0.1f),
+                new Vector3( 0.1f, 0f, -0.1f),
+                new Vector3(-0.1f, 0f,  0.1f),
+                new Vector3( 0.1f, 0f,  0.1f)
+            };
+
+            kf.normals = new Vector3[] { Vector3.up, Vector3.up, Vector3.up, Vector3.up };
+            return kf;
+        }
+
+        TKeyframe CreateSproutKeyframe(float time)
+        {
+            TKeyframe kf = new TKeyframe();
+            kf.time = time;
+            kf.color = new Color(0.2f, 0.8f, 0.2f); // 초록색
+
+            // 새싹
+            kf.vertices = new Vector3[]
+            {
+                new Vector3(-0.2f, 0.3f, -0.2f),
+                new Vector3( 0.2f, 0.5f, -0.2f),
+                new Vector3(-0.2f, 0.5f,  0.2f),
+                new Vector3( 0.2f, 0.3f,  0.2f)
+            };
+
+            kf.normals = new Vector3[] { Vector3.up, Vector3.up, Vector3.up, Vector3.up };
+            return kf;
+        }
+
+        TKeyframe CreateBudKeyframe(float time)
+        {
+            TKeyframe kf = new TKeyframe();
+            kf.time = time;
+            kf.color = new Color(0.8f, 0.2f, 0.5f); // 분홍색
+
+            // 꽃봉오리
+            kf.vertices = new Vector3[]
+            {
+                new Vector3(-0.4f, 0.8f, -0.4f),
+                new Vector3( 0.4f, 1f, -0.4f),
+                new Vector3(-0.4f, 1f,  0.4f),
+                new Vector3( 0.4f, 0.8f,  0.4f)
+            };
+
+            kf.normals = new Vector3[] { Vector3.up, Vector3.up, Vector3.up, Vector3.up };
+            return kf;
+        }
+
+        TKeyframe CreateFlowerKeyframe(float time)
+        {
+            TKeyframe kf = new TKeyframe();
+            kf.time = time;
+            kf.color = new Color(1f, 0.3f, 0.6f); // 밝은 분홍
+
+            // 꽃
+            kf.vertices = new Vector3[]
+            {
+                new Vector3(-1f, 1.2f, -1f),
+                new Vector3( 1f, 1.5f, -1f),
+                new Vector3(-1f, 1.5f,  1f),
+                new Vector3( 1f, 1.2f,  1f)
+            };
+
+            kf.normals = new Vector3[]
+            {
+                new Vector3(-1, 1, -1).normalized,
+                new Vector3( 1, 1, -1).normalized,
+                new Vector3(-1, 1,  1).normalized,
+                new Vector3( 1, 1,  1).normalized
+            };
+
+            return kf;
+        }
+
+        // ========== 기존 메서드들 ==========
+
         void Update()
         {
+
             HandleTestControls();
+
+            // 색상 애니메이션 추가
+            if (animateColor && meshRenderer != null)
+            {
+                float normalizedTime = currentTime / morphDuration;
+                Color timeColor = colorOverTime.Evaluate(normalizedTime);
+
+                if (propBlock == null) propBlock = new MaterialPropertyBlock();
+                propBlock.SetColor("_BaseColor", timeColor);
+                propBlock.SetColor("_EmissionColor", timeColor * 0.3f);
+                meshRenderer.SetPropertyBlock(propBlock);
+            }
         }
 
         void HandleTestControls()
@@ -157,7 +463,6 @@ namespace TemporalVR
                 currentTime = Mathf.Min(morphDuration, currentTime + Time.deltaTime * 2f);
                 UpdateToTime(currentTime);
             }
-
             // R: 리셋
             if (Input.GetKeyDown(KeyCode.R))
             {
@@ -165,7 +470,11 @@ namespace TemporalVR
                 UpdateToTime(0f);
             }
 
-
+            // 숫자 키로 프리셋 선택
+            if (Input.GetKeyDown(KeyCode.Alpha1)) CreateDummyKeyframes();
+            if (Input.GetKeyDown(KeyCode.Alpha2)) CreateSphereMorph();
+            if (Input.GetKeyDown(KeyCode.Alpha3)) CreateStarMorph();
+            if (Input.GetKeyDown(KeyCode.Alpha4)) CreateFlowerGrowth();
         }
 
         float currentTime = 0f;
@@ -192,7 +501,7 @@ namespace TemporalVR
                 float t = keyframes[i].time / morphDuration;
                 Vector3 pos = transform.position + Vector3.right * (t * 4f - 2f) + Vector3.up * 2f;
 
-                Gizmos.color = colorOverTime.Evaluate(t);
+                Gizmos.color = keyframes[i].color;
                 Gizmos.DrawWireCube(pos, Vector3.one * 0.2f);
 
 #if UNITY_EDITOR
@@ -221,6 +530,7 @@ namespace TemporalVR
             Debug.Log($"Keyframes: {keyframes.Count}");
             Debug.Log($"Working Mesh: {(workingMesh != null ? workingMesh.name : "null")}");
             Debug.Log($"Mesh Vertices: {(workingMesh != null ? workingMesh.vertexCount : 0)}");
+            Debug.Log($"Current Time: {currentTime:F2} / {morphDuration:F2}");
         }
     }
 }
