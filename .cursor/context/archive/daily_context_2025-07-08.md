@@ -12,16 +12,16 @@
 - None
 
 ## 💻 Git Status
-- **Modified files**: 5
+- **Modified files**: 4
 - **Current branch**: master
 - **Last commit**: a144604 - Day 12: TMorphTest로 4가지 시간 변형(Wave/Sphere/Star/Flower) 구현 성공했으나, PerformanceMonitor와의 충돌로 Morph 동작이 중단되는 치명적 버그 발견 (16 hours ago)
 
 ## 🔥 Hot Files (Recently Active)
 - `daily_context.md`
+- `unity/TemporalVR/Assets/Scripts/TemporalVR/Morphing/TMorphTest.cs`
 - `unity/TemporalVR/Assets/Scripts/TemporalVR/PerformanceMonitor.cs`
-- `research/daily_contexts/daily_context_2025-07-07.md`
-- `unity/TemporalVR/Assets/Scripts/TemporalVR/PerformanceMonitor.cs.meta`
-- `unity/TemporalVR/Assets/Scenes/TemporalVRRig.unity`
+- `.cursor/context/archive/daily_context_2025-07-07.md`
+- `unity/TemporalVR/UserSettings/Layouts/default-2022.dwlt`
 
 ## ⚠️ Current Blockers
 - ✅ No blockers detected

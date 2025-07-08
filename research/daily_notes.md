@@ -223,3 +223,36 @@ VR 컨트롤러 모드 전환 시스템 완성
 
 
 ---
+
+## 2025-07-08 (Tue) - Day 13: PerformanceMonitor 버그 수정 및 Temporal Brush 시스템 구현
+
+### 🎯 Completed Tasks
+- PerformanceMonitor와 TMorphObj 간의 충돌 버그 해결
+- TMorphTest 색상 애니메이션 문제 수정 (material.color 직접 설정)
+- TemporalBrushData.cs 구현 완료
+- TMorphObj에 Temporal Brush 지원 메서드 추가
+- TVRFeedback의 ShowBrushImpact 애니메이션 개선
+
+### 🔧 Technical Progress
+Sprites/Default 셰이더가 MaterialPropertyBlock을 지원하지 않아서 색상이 적용되지 않는 문제를 발견. meshRenderer.material.color = timeColor 직접 설정으로 해결. PerformanceMonitor의 통계 업데이트 주기를 5초로 늘려 성능 향상.
+
+### 💡 Research Insights
+Temporal Brush의 핵심은 "시간을 칠하는" 인터페이스. 현재는 전체 객체의 시간만 변경 가능하지만, Vertex 단위 시간 제어를 위한 TemporalMeshData 구조 설계 완료. 이는 SIGGRAPH 논문의 주요 contribution이 될 예정.
+
+### ⚠️ Issues & Blockers
+Paint Mode에서 불필요한 Sphere 생성 문제 (Particle 제거로 해결). 현재 구조(TemporalObject → TMorphObj → TMorphTest)가 복잡하여 향후 리팩토링 필요.
+
+### 📊 Statistics
+- Git commits today: 4
+- Files modified: 3
+- Progress: 18.9%
+
+### 🎯 Next Steps
+- 현재 구조(TemporalObject → TMorphObj → TMorphTest)가 복잡하여 향후 리팩토링 필요.
+- Growing Tree 데모 씬 생성
+- VR 컨트롤러로 성장 속도 조절 구현
+
+### 💭 Reflection
+오늘은 큰 버그들을 해결하고 Temporal Brush의 기초를 구현한 생산적인 날이었다. 특히 Vertex 단위 시간 제어를 위한 TMorphObj_V2 설계는 프로젝트의 핵심 혁신이 될 것 같다. 내일은 Week 2를 마무리하고 실제로 "시간을 칠하는" 데모구현
+
+---
