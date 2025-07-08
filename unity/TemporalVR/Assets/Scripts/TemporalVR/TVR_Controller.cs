@@ -256,7 +256,6 @@ namespace TemporalVR
 
             }
         }
-
         private void HandleTemporalPainting()
         {
             if (rightActionController == null) return;
@@ -267,20 +266,76 @@ namespace TemporalVR
                 triggerValue = rightActionController.activateAction.action.ReadValue<float>();
             }
 
+            // 트리거를 누르고 있는 동안
             if (triggerValue > 0.1f)
             {
+                // 브러시 설정s
+                float brushRadius = 0.1f + (triggerValue * 0.2f); // 압력에 따른 크기
                 float brushStrength = triggerValue;
+
+                // 컨트롤러 위치를 브러시 위치로
                 Vector3 brushPosition = rightController.position;
 
+                // 방법 1: Ray를 사용한 정확한 타겟팅
                 RaycastHit hit;
                 if (Physics.Raycast(brushPosition, rightController.forward, out hit, 5f))
                 {
-                    TemporalObject tempObj = hit.collider.GetComponent<TemporalObject>();
-                    if (tempObj != null)
+                    // TMorphTest 또는 TMorphObj 찾기
+                    TMorphTest morphTest = hit.collider.GetComponent<TMorphTest>();
+                    TMorphObj morphObj = hit.collider.GetComponent<TMorphObj>();
+
+                    if (morphTest != null)
                     {
-                        tempObj.ApplyTemporalBrush(hit.point, brushStrength, currentTimePosition);
+                        // 시간 변경 적용
+                        float currentTime = morphTest.GetCurrentTime();
+                        float timeChange = brushStrength * 10f * Time.deltaTime;
+                        float newTime = currentTime + timeChange;
+
+                        // 시간 범위 제한
+                        float minTime, maxTime;
+                        morphTest.GetTimeRange(out minTime, out maxTime);
+                        newTime = Mathf.Clamp(newTime, minTime, maxTime);
+
+                        morphTest.UpdateToTime(newTime);
+
+                        // Brush가 적용되었다는 시각적 피드백
+                        morphTest.OnTemporalBrushApplied(brushStrength, hit.point);
+                    }
+                    else if (morphObj != null)
+                    {
+                        // TMorphObj만 있는 경우
+                        float currentTime = morphObj.GetCurrentTime();
+                        float timeChange = brushStrength * 10f * Time.deltaTime;
+                        morphObj.AdjustTimeRelative(timeChange);
+                    }
+
+                    // 시각적 피드백 - 충격 지점 표시
+                    if (feedback != null)
+                    {
+                        feedback.ShowBrushImpact(hit.point, brushStrength);
                     }
                 }
+
+                // 방법 2: 범위 내 모든 객체 (선택사항)
+                /*
+                Collider[] colliders = Physics.OverlapSphere(brushPosition, brushRadius);
+                foreach (var collider in colliders)
+                {
+                    TMorphTest morphTest = collider.GetComponent<TMorphTest>();
+                    if (morphTest != null)
+                    {
+                        float distance = Vector3.Distance(brushPosition, collider.transform.position);
+                        float falloff = 1f - (distance / brushRadius);
+                        falloff = Mathf.Max(0, falloff);
+
+                        float timeChange = brushStrength * falloff * 5f * Time.deltaTime;
+                        morphTest.AdjustTimeRelative(timeChange);
+                    }
+                }
+                */
+
+                // 브러시 시각화 (디버그용)
+                Debug.DrawRay(brushPosition, rightController.forward * 5f, Color.green);
             }
         }
 

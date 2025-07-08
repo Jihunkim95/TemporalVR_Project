@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System.Collections;
 
 namespace TemporalVR
 {
@@ -261,6 +262,162 @@ namespace TemporalVR
                 case TemporalVRController.TemporalMode.Sculpt: return sculptColor;
                 case TemporalVRController.TemporalMode.Preview: return previewColor;
                 default: return Color.white;
+            }
+        }
+        // TVRFeedback.cs에 다음 메서드들을 추가하세요:
+
+        /// <summary>
+        /// 브러시 효과 표시 (브러시 위치, 크기, 시간값 시각화)
+        /// </summary>
+        public void ShowBrushEffect(Vector3 position, float radius, float timeValue)
+        {
+            // 브러시 영역 표시
+            StartCoroutine(ShowBrushArea(position, radius, timeValue));
+        }
+
+        private IEnumerator ShowBrushArea(Vector3 position, float radius, float timeValue)
+        {
+            // 임시 브러시 영역 표시 오브젝트
+            GameObject brushArea = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            brushArea.name = "BrushAreaEffect";
+            brushArea.transform.position = position;
+            brushArea.transform.localScale = Vector3.one * radius * 2f;
+
+            // Collider 제거
+            Destroy(brushArea.GetComponent<Collider>());
+
+            // Material 설정
+            Renderer renderer = brushArea.GetComponent<Renderer>();
+            Material mat = new Material(Shader.Find("Sprites/Default"));
+
+            // 시간값에 따른 색상
+            float normalizedTime = Mathf.Clamp01(timeValue / 100f);
+            Color brushColor = Color.Lerp(
+                new Color(0.2f, 0.4f, 1f, 0.3f),  // 과거 = 파란색
+                new Color(1f, 0.2f, 0.2f, 0.3f),   // 미래 = 빨간색
+                normalizedTime
+            );
+            mat.color = brushColor;
+            renderer.material = mat;
+
+            // 페이드 아웃 애니메이션
+            float duration = 0.3f;
+            float elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                float t = elapsed / duration;
+                float alpha = Mathf.Lerp(0.3f, 0f, t);
+                float scale = Mathf.Lerp(1f, 1.2f, t);
+
+                // 색상 페이드
+                brushColor.a = alpha;
+                mat.color = brushColor;
+
+                // 크기 확장
+                brushArea.transform.localScale = Vector3.one * radius * 2f * scale;
+
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            Destroy(brushArea);
+        }
+
+        /// <summary>
+        /// 브러시 트레일 효과 (이미 있는 ShowBrushImpact 개선)
+        /// </summary>
+        public void ShowBrushImpact(Vector3 position, float strength)
+        {
+            // 충격 지점 효과
+            GameObject impact = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            impact.transform.position = position;
+            impact.transform.localScale = Vector3.one * 0.05f * (1f + strength);
+
+            var renderer = impact.GetComponent<Renderer>();
+            Material mat = new Material(Shader.Find("Sprites/Default"));
+
+            // 강도에 따른 색상
+            Color impactColor = new Color(
+                0.3f + (strength * 0.7f),  // R
+                0.7f - (strength * 0.4f),  // G  
+                1f,                        // B
+                0.8f                       // A
+            );
+            mat.color = impactColor;
+            renderer.material = mat;
+
+            Destroy(impact.GetComponent<Collider>());
+
+            // 파티클 효과 추가 (선택사항)
+            if (timeParticles != null)
+            {
+                timeParticles.transform.position = position;
+                var main = timeParticles.main;
+                main.startColor = impactColor;
+                timeParticles.Emit((int)(strength * 20));
+            }
+
+            Destroy(impact, 0.5f);
+        }
+
+        /// <summary>
+        /// 연속적인 브러시 스트로크 시각화
+        /// </summary>
+        private Queue<Vector3> brushTrailPositions = new Queue<Vector3>();
+        private GameObject brushTrailObject;
+        private LineRenderer brushTrailRenderer;
+
+        public void UpdateBrushTrail(Vector3 position, float timeValue)
+        {
+            if (brushTrailObject == null)
+            {
+                brushTrailObject = new GameObject("BrushTrail");
+                brushTrailRenderer = brushTrailObject.AddComponent<LineRenderer>();
+                brushTrailRenderer.startWidth = 0.02f;
+                brushTrailRenderer.endWidth = 0.01f;
+                brushTrailRenderer.material = new Material(Shader.Find("Sprites/Default"));
+            }
+
+            // 트레일 포인트 추가
+            brushTrailPositions.Enqueue(position);
+            if (brushTrailPositions.Count > 20) // 최대 20개 포인트
+            {
+                brushTrailPositions.Dequeue();
+            }
+
+            // LineRenderer 업데이트
+            Vector3[] positions = brushTrailPositions.ToArray();
+            brushTrailRenderer.positionCount = positions.Length;
+            brushTrailRenderer.SetPositions(positions);
+
+            // 시간에 따른 그라데이션
+            Gradient gradient = new Gradient();
+            float normalizedTime = Mathf.Clamp01(timeValue / 100f);
+            Color trailColor = Color.Lerp(Color.blue, Color.red, normalizedTime);
+
+            gradient.SetKeys(
+                new GradientColorKey[] {
+            new GradientColorKey(trailColor, 0f),
+            new GradientColorKey(trailColor * 0.5f, 1f)
+                },
+                new GradientAlphaKey[] {
+            new GradientAlphaKey(0.8f, 0f),
+            new GradientAlphaKey(0f, 1f)
+                }
+            );
+            brushTrailRenderer.colorGradient = gradient;
+        }
+
+        /// <summary>
+        /// 브러시 트레일 클리어
+        /// </summary>
+        public void ClearBrushTrail()
+        {
+            brushTrailPositions.Clear();
+            if (brushTrailRenderer != null)
+            {
+                brushTrailRenderer.positionCount = 0;
             }
         }
     }
