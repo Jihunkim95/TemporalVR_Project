@@ -316,24 +316,6 @@ namespace TemporalVR
                     }
                 }
 
-                // 방법 2: 범위 내 모든 객체 (선택사항)
-                /*
-                Collider[] colliders = Physics.OverlapSphere(brushPosition, brushRadius);
-                foreach (var collider in colliders)
-                {
-                    TMorphTest morphTest = collider.GetComponent<TMorphTest>();
-                    if (morphTest != null)
-                    {
-                        float distance = Vector3.Distance(brushPosition, collider.transform.position);
-                        float falloff = 1f - (distance / brushRadius);
-                        falloff = Mathf.Max(0, falloff);
-
-                        float timeChange = brushStrength * falloff * 5f * Time.deltaTime;
-                        morphTest.AdjustTimeRelative(timeChange);
-                    }
-                }
-                */
-
                 // 브러시 시각화 (디버그용)
                 Debug.DrawRay(brushPosition, rightController.forward * 5f, Color.green);
             }

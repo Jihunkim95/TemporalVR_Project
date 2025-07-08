@@ -325,21 +325,31 @@ namespace TemporalVR
         }
 
         /// <summary>
-        /// 브러시 트레일 효과 (이미 있는 ShowBrushImpact 개선)
+        /// 브러시 트레일 효과 
         /// </summary>
         public void ShowBrushImpact(Vector3 position, float strength)
         {
             // 충격 지점 효과
             GameObject impact = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             impact.transform.position = position;
-            impact.transform.localScale = Vector3.one * 0.05f * (1f + strength);
 
+            // 🔧 이 부분을 수정하세요!
+            // 기존: impact.transform.localScale = Vector3.one * 0.05f * (1f + strength);
+
+            // 옵션 1: 더 작게 시작
+            impact.transform.localScale = Vector3.one * 0.02f * (1f + strength);
+
+            // 옵션 2: strength 영향을 줄이기
+            impact.transform.localScale = Vector3.one * 0.05f * (1f + strength * 0.5f);
+
+            // 옵션 3: 고정 크기
+            impact.transform.localScale = Vector3.one * 0.03f;
             var renderer = impact.GetComponent<Renderer>();
             Material mat = new Material(Shader.Find("Sprites/Default"));
 
             // 강도에 따른 색상
             Color impactColor = new Color(
-                0.3f + (strength * 0.7f),  // R
+                0.1f + (strength * 0.7f),  // R
                 0.7f - (strength * 0.4f),  // G  
                 1f,                        // B
                 0.8f                       // A
@@ -348,15 +358,6 @@ namespace TemporalVR
             renderer.material = mat;
 
             Destroy(impact.GetComponent<Collider>());
-
-            // 파티클 효과 추가 (선택사항)
-            if (timeParticles != null)
-            {
-                timeParticles.transform.position = position;
-                var main = timeParticles.main;
-                main.startColor = impactColor;
-                timeParticles.Emit((int)(strength * 20));
-            }
 
             Destroy(impact, 0.5f);
         }

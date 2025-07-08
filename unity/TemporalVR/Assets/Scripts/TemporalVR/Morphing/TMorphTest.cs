@@ -439,12 +439,6 @@ namespace TemporalVR
                 // 현재 시간에 따라 색상 업데이트
                 meshRenderer.material.color = timeColor;  
 
-                // 디버깅 로그 추가
-                if (Time.frameCount % 60 == 0) // 1초마다 출력
-                {
-                    Debug.Log($"[Color Debug] Time: {normalizedTime:F2}, Color: {timeColor}, Material: {meshRenderer.material.name}");
-                }
-
                 if (propBlock == null) propBlock = new MaterialPropertyBlock();
                 propBlock.SetColor("_BaseColor", timeColor);
                 propBlock.SetColor("_EmissionColor", timeColor * 0.3f);
@@ -454,8 +448,8 @@ namespace TemporalVR
 
         void HandleTestControls()
         {
-            // 스페이스: 자동 재생
-            if (Input.GetKeyDown(KeyCode.Space))
+            // 상단 화살표: 자동 재생
+            if (Input.GetKeyDown(KeyCode.UpArrow))
             {
                 StartCoroutine(PlayAnimation());
             }
