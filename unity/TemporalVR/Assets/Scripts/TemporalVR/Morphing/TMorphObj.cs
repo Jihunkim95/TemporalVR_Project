@@ -10,13 +10,17 @@ namespace TemporalVR
         public List<TKeyframe> keyframes = new List<TKeyframe>();
 
         protected MeshFilter meshFilter;
-        protected MeshRenderer meshRenderer;  // 추가
+        protected MeshRenderer meshRenderer;
         protected Mesh workingMesh;
-        protected MaterialPropertyBlock propBlock;  // 추가
+        protected MaterialPropertyBlock propBlock;
 
         [Header("ES3 Settings")]
         public string saveKey = "TMorphObj_";
         public bool autoSave = false;
+
+        // 업데이트 중 플래그 (충돌 방지)
+        private bool isUpdatingMesh = false;
+        private object meshLock = new object();
 
         protected virtual void Awake()
         {
@@ -55,55 +59,84 @@ namespace TemporalVR
         {
             if (mesh == null) return;
 
-            workingMesh = Instantiate(mesh);
-            meshFilter.mesh = workingMesh;
+            lock (meshLock)
+            {
+                // 기존 workingMesh 정리
+                if (workingMesh != null && workingMesh != meshFilter.sharedMesh)
+                {
+                    DestroyImmediate(workingMesh);
+                }
+
+                workingMesh = Instantiate(mesh);
+                meshFilter.mesh = workingMesh;
+            }
         }
 
         public void UpdateToTime(float time)
         {
+            // 업데이트 중이면 스킵
+            if (isUpdatingMesh) return;
+
             if (keyframes.Count < 2) return;
             if (workingMesh == null) return;
 
-            time = Mathf.Clamp(time, keyframes[0].time, keyframes[keyframes.Count - 1].time);
+            // 업데이트 시작
+            isUpdatingMesh = true;
 
-            // 현재 시간에 해당하는 키프레임 찾기
-            TKeyframe from = null, to = null;
-            for (int i = 0; i < keyframes.Count - 1; i++)
+            try
             {
-                if (time >= keyframes[i].time && time <= keyframes[i + 1].time)
+                time = Mathf.Clamp(time, keyframes[0].time, keyframes[keyframes.Count - 1].time);
+
+                // 현재 시간에 해당하는 키프레임 찾기
+                TKeyframe from = null, to = null;
+                for (int i = 0; i < keyframes.Count - 1; i++)
                 {
-                    from = keyframes[i];
-                    to = keyframes[i + 1];
-                    break;
+                    if (time >= keyframes[i].time && time <= keyframes[i + 1].time)
+                    {
+                        from = keyframes[i];
+                        to = keyframes[i + 1];
+                        break;
+                    }
                 }
-            }
 
-            // 경계 처리
-            if (from == null)
-            {
-                if (time <= keyframes[0].time)
+                // 경계 처리
+                if (from == null)
                 {
-                    ApplyKeyframe(keyframes[0]);
+                    if (time <= keyframes[0].time)
+                    {
+                        ApplyKeyframe(keyframes[0]);
+                    }
+                    else if (time >= keyframes[keyframes.Count - 1].time)
+                    {
+                        ApplyKeyframe(keyframes[keyframes.Count - 1]);
+                    }
+                    return;
                 }
-                else if (time >= keyframes[keyframes.Count - 1].time)
-                {
-                    ApplyKeyframe(keyframes[keyframes.Count - 1]);
-                }
-                return;
-            }
 
-
-
-            // 마지막에 색상 업데이트 추가
-            if (meshRenderer != null && from != null && to != null)
-            {
-                float t = (time - from.time) / (to.time - from.time);
                 // 보간
-                LerpMesh(from, to, t);
-                // 색상 보간 추가
-                LerpColor(from, to, t);
-                Color lerpedColor = Color.Lerp(from.color, to.color, t);
-                meshRenderer.material.color = lerpedColor;
+                if (from != null && to != null)
+                {
+                    float t = (time - from.time) / (to.time - from.time);
+
+                    lock (meshLock)
+                    {
+                        LerpMesh(from, to, t);
+                    }
+
+                    // 색상 보간 (Material 접근은 메인 스레드에서만)
+                    if (meshRenderer != null)
+                    {
+                        LerpColor(from, to, t);
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[TMorphObj] UpdateToTime error: {e.Message}");
+            }
+            finally
+            {
+                isUpdatingMesh = false;
             }
         }
 
@@ -111,13 +144,16 @@ namespace TemporalVR
         {
             if (kf.vertices == null || workingMesh == null) return;
 
-            workingMesh.vertices = kf.vertices;
-            if (kf.normals != null)
-                workingMesh.normals = kf.normals;
-            else
-                workingMesh.RecalculateNormals();
+            lock (meshLock)
+            {
+                workingMesh.vertices = kf.vertices;
+                if (kf.normals != null)
+                    workingMesh.normals = kf.normals;
+                else
+                    workingMesh.RecalculateNormals();
 
-            workingMesh.RecalculateBounds();
+                workingMesh.RecalculateBounds();
+            }
 
             // 색상 적용
             ApplyColor(kf.color);
@@ -135,6 +171,8 @@ namespace TemporalVR
             {
                 lerpedVertices[i] = Vector3.Lerp(from.vertices[i], to.vertices[i], t);
             }
+
+            // 메시 업데이트
             workingMesh.vertices = lerpedVertices;
 
             // 법선 보간
@@ -167,16 +205,29 @@ namespace TemporalVR
         void ApplyColor(Color color)
         {
             if (meshRenderer == null) return;
+            if (propBlock == null) propBlock = new MaterialPropertyBlock();
 
-            // MaterialPropertyBlock 사용 (성능 최적화)
-            meshRenderer.GetPropertyBlock(propBlock);
-            propBlock.SetColor("_BaseColor", color);
+            try
+            {
+                // MaterialPropertyBlock 사용 (성능 최적화)
+                meshRenderer.GetPropertyBlock(propBlock);
+                propBlock.SetColor("_BaseColor", color);
 
-            // Emission 색상도 설정 (선택사항)
-            propBlock.SetColor("_EmissionColor", color * 0.3f);
+                // Emission 색상도 설정 (선택사항)
+                propBlock.SetColor("_EmissionColor", color * 0.3f);
 
-            meshRenderer.SetPropertyBlock(propBlock);
+                meshRenderer.SetPropertyBlock(propBlock);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[TMorphObj] Color apply error: {e.Message}");
+            }
         }
+
+        // Public 읽기 전용 속성 추가 (PerformanceMonitor를 위해)
+        public int KeyframeCount => keyframes?.Count ?? 0;
+        public int VertexCount => workingMesh?.vertexCount ?? 0;
+        public bool IsUpdating => isUpdatingMesh;
 
         public void SaveMorphData()
         {
@@ -195,6 +246,18 @@ namespace TemporalVR
         public override void ApplyTemporalBrush(Vector3 position, float strength, float time)
         {
             base.ApplyTemporalBrush(position, strength, time);
+        }
+
+        // 정리
+        void OnDestroy()
+        {
+            lock (meshLock)
+            {
+                if (workingMesh != null && workingMesh != meshFilter.sharedMesh)
+                {
+                    DestroyImmediate(workingMesh);
+                }
+            }
         }
     }
 }

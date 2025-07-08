@@ -428,6 +428,7 @@ namespace TemporalVR
 
         void Update()
         {
+            if (GetComponent<TMorphObj>().IsUpdating) return;
 
             HandleTestControls();
 

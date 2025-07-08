@@ -10,7 +10,7 @@ namespace TemporalVR
         [SerializeField] private bool showFPS = true;
         [SerializeField] private bool showMemory = true;
         [SerializeField] private bool showDrawCalls = true;
-        [SerializeField] private bool showTemporalStats = true;
+        [SerializeField] private bool showTemporalStats = false; // 기본값 false로 변경
 
         [Header("Toggle Keys")]
         [SerializeField] private KeyCode toggleKey = KeyCode.P;
@@ -52,8 +52,11 @@ namespace TemporalVR
         private bool isVisible = true;
 
         // 통계 업데이트 주기 조절
-        private float statsUpdateInterval = 2f; // 1초에서 2초로 변경
+        private float statsUpdateInterval = 5f; // 2초에서 5초로 증가
         private float lastStatsUpdate = 0f;
+
+        // 안전한 업데이트를 위한 플래그
+        private bool isUpdatingStats = false;
 
         void Start()
         {
@@ -99,14 +102,11 @@ namespace TemporalVR
                 avgFPS = (avgFPS + fps) * 0.5f;
             }
 
-            // 통계 업데이트 (주기적으로만)
-            if (Time.time - lastStatsUpdate > statsUpdateInterval)
+            // 통계 업데이트 (주기적으로만, 안전하게)
+            if (showTemporalStats && !isUpdatingStats && Time.time - lastStatsUpdate > statsUpdateInterval)
             {
                 lastStatsUpdate = Time.time;
-                if (showTemporalStats) // Temporal Stats가 켜져있을 때만 업데이트
-                {
-                    UpdateStats();
-                }
+                SafeUpdateStats();
             }
 
             // 디스플레이 업데이트
@@ -128,57 +128,88 @@ namespace TemporalVR
             if (Input.GetKeyDown(statsKey))
             {
                 showTemporalStats = !showTemporalStats;
+                Debug.Log($"[PerformanceMonitor] Temporal Stats: {(showTemporalStats ? "ON" : "OFF")}");
             }
         }
 
-        void UpdateStats()
+        void SafeUpdateStats()
         {
+            // 업데이트 중 플래그 설정
+            isUpdatingStats = true;
+
             try
             {
-                // Temporal 객체 수만 세기 (내부 데이터 접근 최소화)
-                TMorphObj[] morphObjects = FindObjectsOfType<TMorphObj>();
-                activeTemporalObjects = morphObjects.Length;
-
-                // 메모리 사용량
+                // 메모리 사용량 (항상 안전)
                 lastUsedMemory = Profiler.GetTotalAllocatedMemoryLong() / 1048576L;
                 if (lastUsedMemory > peakMemory)
                     peakMemory = lastUsedMemory;
 
-                // 상세 통계는 옵션으로
-                if (morphObjects.Length > 0 && morphObjects.Length < 10) // 객체가 너무 많으면 스킵
-                {
-                    totalKeyframes = 0;
-                    totalVertices = 0;
-
-                    foreach (var obj in morphObjects)
-                    {
-                        if (obj == null) continue;
-
-                        // null 체크 강화
-                        if (obj.keyframes != null)
-                        {
-                            totalKeyframes += obj.keyframes.Count;
-                        }
-
-                        // MeshFilter 접근 시 주의
-                        try
-                        {
-                            var meshFilter = obj.GetComponent<MeshFilter>();
-                            if (meshFilter != null && meshFilter.mesh != null)
-                            {
-                                totalVertices += meshFilter.mesh.vertexCount;
-                            }
-                        }
-                        catch
-                        {
-                            // 메시 접근 실패 시 무시
-                        }
-                    }
-                }
+                // Temporal 객체 통계 (안전하게)
+                UpdateTemporalStats();
             }
             catch (System.Exception e)
             {
                 Debug.LogWarning($"[PerformanceMonitor] Stats update error: {e.Message}");
+                // 에러 발생 시 통계 기능 자동 비활성화
+                showTemporalStats = false;
+            }
+            finally
+            {
+                isUpdatingStats = false;
+            }
+        }
+
+        void UpdateTemporalStats()
+        {
+            // TMorphObj 찾기 (한 번만)
+            TMorphObj[] morphObjects = FindObjectsOfType<TMorphObj>();
+            activeTemporalObjects = morphObjects.Length;
+
+            // 객체가 너무 많으면 상세 통계 스킵
+            if (morphObjects.Length > 20)
+            {
+                totalKeyframes = -1; // -1은 "too many"를 의미
+                totalVertices = -1;
+                return;
+            }
+
+            totalKeyframes = 0;
+            totalVertices = 0;
+
+            foreach (var obj in morphObjects)
+            {
+                // Null 체크
+                if (obj == null) continue;
+
+                // 안전한 keyframes 접근
+                try
+                {
+                    if (obj.keyframes != null)
+                    {
+                        totalKeyframes += obj.keyframes.Count;
+                    }
+                }
+                catch
+                {
+                    // keyframes 접근 실패 시 무시
+                }
+
+                // 안전한 mesh 접근 (GetComponent 사용 지양)
+                try
+                {
+                    // TMorphObj가 이미 가지고 있는 public 메서드가 있다면 사용
+                    // 없다면 이 부분은 스킵
+                    var meshFilter = obj.GetComponent<MeshFilter>();
+                    if (meshFilter != null && meshFilter.sharedMesh != null)
+                    {
+                        // sharedMesh 사용 (workingMesh 대신)
+                        totalVertices += meshFilter.sharedMesh.vertexCount;
+                    }
+                }
+                catch
+                {
+                    // 메시 접근 실패 시 무시
+                }
             }
         }
 
@@ -203,15 +234,19 @@ namespace TemporalVR
             }
 
             // Temporal 통계 (간소화)
-            if (showTemporalStats)
+            if (showTemporalStats && activeTemporalObjects > 0)
             {
                 displayText.AppendLine("=== Temporal ===");
                 displayText.AppendLine($"Objects: {activeTemporalObjects}");
 
-                if (activeTemporalObjects > 0 && activeTemporalObjects < 10)
+                if (totalKeyframes >= 0) // -1이 아닌 경우만 표시
                 {
                     displayText.AppendLine($"Keyframes: {totalKeyframes}");
                     displayText.AppendLine($"Vertices: {totalVertices}");
+                }
+                else
+                {
+                    displayText.AppendLine("(Too many objects)");
                 }
             }
 
@@ -251,6 +286,8 @@ namespace TemporalVR
         // 컴포넌트 비활성화 시 정리
         void OnDisable()
         {
+            isUpdatingStats = false; // 플래그 초기화
+
             if (worldTextDisplay != null)
                 worldTextDisplay.gameObject.SetActive(false);
         }
