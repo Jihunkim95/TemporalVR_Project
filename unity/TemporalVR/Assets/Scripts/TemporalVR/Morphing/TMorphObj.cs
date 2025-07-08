@@ -26,7 +26,6 @@ namespace TemporalVR
         {
             InitializeMesh();
         }
-
         protected void InitializeMesh()
         {
             // MeshFilter 확인
@@ -41,10 +40,17 @@ namespace TemporalVR
             if (meshRenderer == null)
             {
                 meshRenderer = gameObject.AddComponent<MeshRenderer>();
-                meshRenderer.material = new Material(Shader.Find("Sprites/Default"));
+
+                // Sprites/Default 대신 Unlit/Color 사용
+                Material mat = new Material(Shader.Find("Sprites/Default"));
+                if (mat == null)
+                {
+                    mat = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+                }
+                meshRenderer.material = mat;
             }
 
-            // MaterialPropertyBlock 초기화 (성능 향상)
+            // MaterialPropertyBlock 초기화
             propBlock = new MaterialPropertyBlock();
 
             // 메시가 있으면 복사

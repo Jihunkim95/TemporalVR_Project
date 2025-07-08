@@ -428,15 +428,22 @@ namespace TemporalVR
 
         void Update()
         {
-            if (GetComponent<TMorphObj>().IsUpdating) return;
-
             HandleTestControls();
 
-            // 색상 애니메이션 추가
+            // 색상 애니메이션 디버깅
             if (animateColor && meshRenderer != null)
             {
                 float normalizedTime = currentTime / morphDuration;
                 Color timeColor = colorOverTime.Evaluate(normalizedTime);
+
+                // 현재 시간에 따라 색상 업데이트
+                meshRenderer.material.color = timeColor;  
+
+                // 디버깅 로그 추가
+                if (Time.frameCount % 60 == 0) // 1초마다 출력
+                {
+                    Debug.Log($"[Color Debug] Time: {normalizedTime:F2}, Color: {timeColor}, Material: {meshRenderer.material.name}");
+                }
 
                 if (propBlock == null) propBlock = new MaterialPropertyBlock();
                 propBlock.SetColor("_BaseColor", timeColor);
