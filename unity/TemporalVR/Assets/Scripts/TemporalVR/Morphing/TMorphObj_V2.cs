@@ -37,6 +37,41 @@ namespace TemporalVR
         // 현재 시간 추적
         private float globalTime = 0f;
 
+        [ContextMenu("Create Simple Test Data")]
+        void CreateSimpleTestData()
+        {
+            Mesh mesh = GetComponent<MeshFilter>().sharedMesh;
+            if (mesh == null) return;
+
+            keyframes.Clear();
+
+            // 키프레임 1: 원본
+            TKeyframe kf1 = new TKeyframe();
+            kf1.time = 0f;
+            kf1.color = Color.blue;
+            kf1.vertices = mesh.vertices;
+            kf1.normals = mesh.normals;
+            keyframes.Add(kf1);
+
+            // 키프레임 2: 확대
+            TKeyframe kf2 = new TKeyframe();
+            kf2.time = 10f;
+            kf2.color = Color.red;
+            kf2.vertices = new Vector3[mesh.vertices.Length];
+            kf2.normals = mesh.normals;
+
+            for (int i = 0; i < mesh.vertices.Length; i++)
+            {
+                kf2.vertices[i] = mesh.vertices[i] * 1.5f; // 1.5배 확대
+            }
+            keyframes.Add(kf2);
+
+            // Temporal Data 재초기화
+            InitializeTemporalData();
+
+            Debug.Log("Test keyframes created!");
+        }
+
         void Awake()
         {
             InitializeComponents();
