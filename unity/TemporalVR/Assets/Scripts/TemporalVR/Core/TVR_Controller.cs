@@ -27,6 +27,8 @@ namespace TemporalVR
         [SerializeField] private Transform temporalCursor;
         [SerializeField] private TextMesh timeDisplay;
 
+        [Header("Visual Settings")]
+        [SerializeField] private Gradient timeGradient;
         // 기존 Header들 다음에 추가
         [Header("Feedback System")]
         private TVRFeedback feedback;
@@ -53,18 +55,42 @@ namespace TemporalVR
         }
 
         [SerializeField] private TemporalMode currentMode = TemporalMode.Scrub;
-
         private void Start()
         {
             StartCoroutine(InitializeControllers());
             SetupTimelineVisualizer();
-            // TVRFeedback 컴포넌트 가져오기 또는 추가
+
             feedback = GetComponent<TVRFeedback>();
             if (feedback == null)
             {
                 Debug.LogWarning("[TemporalVR] TVRFeedback not found, adding it now...");
                 feedback = gameObject.AddComponent<TVRFeedback>();
                 Debug.Log("[TemporalVR] TVRFeedback component added!");
+            }
+
+            // TemporalEventSystem 초기화 확인
+            if (TemporalEventSystem.Instance == null)
+            {
+                GameObject eventSystemObj = new GameObject("TemporalEventSystem");
+                eventSystemObj.AddComponent<TemporalEventSystem>();
+            }
+
+            // 기본 timeGradient 설정
+            if (timeGradient == null)
+            {
+                timeGradient = new Gradient();
+                GradientColorKey[] colorKeys = new GradientColorKey[]
+                {
+            new GradientColorKey(Color.blue, 0f),
+            new GradientColorKey(Color.green, 0.5f),
+            new GradientColorKey(Color.red, 1f)
+                };
+                GradientAlphaKey[] alphaKeys = new GradientAlphaKey[]
+                {
+            new GradientAlphaKey(1f, 0f),
+            new GradientAlphaKey(1f, 1f)
+                };
+                timeGradient.SetKeys(colorKeys, alphaKeys);
             }
         }
 
@@ -172,6 +198,7 @@ namespace TemporalVR
             UpdateVisualFeedback();
         }
 
+        // 2. HandleModeSwitch 수정 - EventSystem 활용
         private void HandleModeSwitch()
         {
             if (rightActionController == null) return;
@@ -182,11 +209,13 @@ namespace TemporalVR
                 primaryButtonPressed = rightActionController.selectAction.action.ReadValue<float>() > 0.5f;
             }
 
-            // Test 디버깅
             if (primaryButtonPressed && !wasPrimaryButtonPressed)
             {
                 currentMode = (TemporalMode)(((int)currentMode + 1) % 4);
                 Debug.Log($"[TemporalVR] Mode switched to: {currentMode}");
+
+                // EventSystem으로 브로드캐스트
+                TemporalEventSystem.Instance?.BroadcastModeChange(currentMode);
 
                 if (feedback != null)
                 {
@@ -198,7 +227,7 @@ namespace TemporalVR
                     Debug.LogError("[TemporalVR] TVRFeedback is null!");
                 }
 
-                // Timeline 색상 직접 변경 (테스트용)
+                // Timeline 색상 변경
                 if (timelineVisualizer != null)
                 {
                     Color newColor = GetModeColor(currentMode);
@@ -209,6 +238,7 @@ namespace TemporalVR
             }
             wasPrimaryButtonPressed = primaryButtonPressed;
         }
+
 
         private void HandleTimeScrubbing()
         {
@@ -256,6 +286,7 @@ namespace TemporalVR
 
             }
         }
+
         private void HandleTemporalPainting()
         {
             if (rightActionController == null) return;
@@ -266,59 +297,98 @@ namespace TemporalVR
                 triggerValue = rightActionController.activateAction.action.ReadValue<float>();
             }
 
-            // 트리거를 누르고 있는 동안
             if (triggerValue > 0.1f)
             {
-                // 브러시 설정s
-                float brushRadius = 0.1f + (triggerValue * 0.2f); // 압력에 따른 크기
+                float brushRadius = 0.1f + (triggerValue * 0.4f);
                 float brushStrength = triggerValue;
+                float targetTime = Mathf.Clamp01((rightController.position.y - 0.5f) / 2f);
 
-                // 컨트롤러 위치를 브러시 위치로
-                Vector3 brushPosition = rightController.position;
-
-                // 방법 1: Ray를 사용한 정확한 타겟팅
+                // Ray를 사용해서 정확한 hit point 찾기
                 RaycastHit hit;
-                if (Physics.Raycast(brushPosition, rightController.forward, out hit, 5f))
-                {
-                    // TMorphTest 또는 TMorphObj 찾기
-                    TMorphTest morphTest = hit.collider.GetComponent<TMorphTest>();
-                    TMorphObj morphObj = hit.collider.GetComponent<TMorphObj>();
+                bool hasHit = Physics.Raycast(
+                    rightController.position,
+                    rightController.forward,
+                    out hit,
+                    2f  // 최대 거리 2미터
+                );
 
+                if (hasHit)
+                {
+                    // Hit point를 브러시 위치로 사용
+                    Vector3 brushPosition = hit.point;
+
+                    // 충돌한 오브젝트에서 TMorphObj_V2 찾기
+                    TMorphObj_V2 morphV2 = hit.collider.GetComponent<TMorphObj_V2>();
+                    if (morphV2 != null)
+                    {
+                        // Hit point에 브러시 적용
+                        morphV2.ApplyTemporalBrush(brushPosition, brushRadius, brushStrength, targetTime);
+
+                        // 피드백 효과도 hit point에 표시
+                        if (feedback != null)
+                        {
+                            feedback.ShowBrushEffect(brushPosition, brushRadius, targetTime);
+                        }
+                    }
+
+                    // 기존 TMorphTest 지원
+                    TMorphTest morphTest = hit.collider.GetComponent<TMorphTest>();
                     if (morphTest != null)
                     {
-                        // 시간 변경 적용
-                        float currentTime = morphTest.GetCurrentTime();
-                        float timeChange = brushStrength * 10f * Time.deltaTime;
-                        float newTime = currentTime + timeChange;
-
-                        // 시간 범위 제한
                         float minTime, maxTime;
                         morphTest.GetTimeRange(out minTime, out maxTime);
-                        newTime = Mathf.Clamp(newTime, minTime, maxTime);
-
-                        morphTest.UpdateToTime(newTime);
-
-                        // Brush가 적용되었다는 시각적 피드백
-                        morphTest.OnTemporalBrushApplied(brushStrength, hit.point);
-                    }
-                    else if (morphObj != null)
-                    {
-                        // TMorphObj만 있는 경우
-                        float currentTime = morphObj.GetCurrentTime();
-                        float timeChange = brushStrength * 10f * Time.deltaTime;
-                        morphObj.AdjustTimeRelative(timeChange);
+                        float actualTime = Mathf.Lerp(minTime, maxTime, targetTime);
+                        morphTest.LerpToTime(actualTime, brushStrength * Time.deltaTime * 5f);
+                        morphTest.OnTemporalBrushApplied(brushStrength, brushPosition);
                     }
 
-                    // 시각적 피드백 - 충격 지점 표시
+                    // 브러시 트레일 업데이트 (hit point 기준)
                     if (feedback != null)
                     {
-                        feedback.ShowBrushImpact(hit.point, brushStrength);
+                        feedback.UpdateBrushTrail(brushPosition, targetTime);
+                    }
+                }
+                else
+                {
+                    // Ray가 아무것도 hit하지 않았을 때
+                    // 옵션 1: 아무것도 하지 않음
+                    // 옵션 2: 컨트롤러 앞 고정 거리에 프리뷰 표시
+                    if (feedback != null)
+                    {
+                        Vector3 previewPosition = rightController.position + rightController.forward * 0.5f;
+                        // 투명한 프리뷰 효과 (선택사항)
+                        // feedback.ShowBrushPreview(previewPosition, brushRadius * 0.5f, targetTime);
                     }
                 }
 
-                // 브러시 시각화 (디버그용)
-                Debug.DrawRay(brushPosition, rightController.forward * 5f, Color.green);
+                // Shift 모드는 별도 처리 (정밀 타겟팅)
+                if (Input.GetKey(KeyCode.LeftShift))
+                {
+                    // 더 긴 거리의 Ray
+                    if (Physics.Raycast(rightController.position, rightController.forward, out hit, 5f))
+                    {
+                        TemporalEventSystem.Instance?.BroadcastObjectSelected(hit.collider.gameObject);
+
+                        TMorphObj_V2 morphV2 = hit.collider.GetComponent<TMorphObj_V2>();
+                        if (morphV2 != null)
+                        {
+                            morphV2.ApplyTemporalBrush(hit.point, brushRadius * 0.5f, brushStrength * 1.5f, targetTime);
+                        }
+                    }
+
+                    Debug.DrawRay(rightController.position, rightController.forward * 5f, timeGradient.Evaluate(targetTime));
+                }
             }
+            else
+            {
+                if (feedback != null)
+                {
+                    feedback.ClearBrushTrail();
+                }
+            }
+
+            // 디버그: Ray 시각화 (개발 중에만)
+            Debug.DrawRay(rightController.position, rightController.forward * 2f, Color.cyan);
         }
 
         private void HandleTemporalSculpting()
@@ -393,6 +463,7 @@ namespace TemporalVR
 
         private void OnTimeChanged(float newTime)
         {
+            // 기존 코드 대체
             TemporalEventSystem.Instance?.BroadcastTimeChange(newTime);
             Debug.Log($"[TemporalVR] Time changed to: {newTime:F1}");
         }
@@ -414,26 +485,6 @@ namespace TemporalVR
         public virtual void SetTemporalRange(float startTime, float endTime)
         {
             //Debug.Log($"[TemporalObject] Time range set: {startTime} - {endTime}");
-        }
-    }
-
-    public class TemporalEventSystem : MonoBehaviour
-    {
-        public static TemporalEventSystem Instance { get; private set; }
-        public delegate void TimeChangeHandler(float newTime);
-        public event TimeChangeHandler OnTimeChanged;
-
-        private void Awake()
-        {
-            if (Instance == null)
-                Instance = this;
-            else
-                Destroy(gameObject);
-        }
-
-        public void BroadcastTimeChange(float newTime)
-        {
-            OnTimeChanged?.Invoke(newTime);
         }
     }
 

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System.Collections;
 
 namespace TemporalVR
 {
@@ -23,10 +24,18 @@ namespace TemporalVR
         [SerializeField] private bool visualizeTimeGradient = true;
         [SerializeField] private Gradient timeGradient;
 
+        [Header("Brush Settings")]
+        [SerializeField] private float brushFalloffPower = 2f;
+        [SerializeField] private float timeChangeSpeed = 5f;
+        [SerializeField] private bool smoothTimeTransition = true;
+
         // 원본 메시 데이터
         private Vector3[] originalVertices;
         private Vector3[] originalNormals;
         private Color[] vertexColors;
+
+        // 현재 시간 추적
+        private float globalTime = 0f;
 
         void Awake()
         {
@@ -46,7 +55,13 @@ namespace TemporalVR
             if (meshRenderer == null)
             {
                 meshRenderer = gameObject.AddComponent<MeshRenderer>();
+
+                // Vertex Color를 지원하는 셰이더 사용
                 Material mat = new Material(Shader.Find("Unlit/VertexColor"));
+                if (mat == null)
+                {
+                    mat = new Material(Shader.Find("Sprites/Default"));
+                }
                 meshRenderer.material = mat;
             }
 
@@ -62,6 +77,11 @@ namespace TemporalVR
 
                 // Vertex color 배열 초기화
                 vertexColors = new Color[originalVertices.Length];
+                for (int i = 0; i < vertexColors.Length; i++)
+                {
+                    vertexColors[i] = Color.white;
+                }
+                workingMesh.colors = vertexColors;
             }
         }
 
@@ -71,6 +91,13 @@ namespace TemporalVR
             {
                 temporalData = new TemporalMeshData(workingMesh.vertexCount);
                 temporalData.BuildVertexGroups(workingMesh.triangles);
+
+                // 시간 범위 설정
+                if (keyframes.Count > 0)
+                {
+                    temporalData.minTime = keyframes[0].time;
+                    temporalData.maxTime = keyframes[keyframes.Count - 1].time;
+                }
             }
 
             // 기본 그라디언트 설정
@@ -93,29 +120,61 @@ namespace TemporalVR
         }
 
         /// <summary>
-        /// Temporal Brush 적용 - 핵심 메서드
+        /// TVR_Controller에서 호출할 메인 메서드
         /// </summary>
-        public void ApplyTemporalBrush(Vector3 brushPosition, float brushRadius,
-                                      float strength, float targetTime,
-                                      TemporalBrushData.BrushMode mode)
+        public void ApplyTemporalBrush(Vector3 brushWorldPos, float brushRadius,
+                                      float brushStrength, float targetTime)
         {
             if (temporalData == null || workingMesh == null) return;
 
-            // Brush mode에 따른 target time 계산
-            float adjustedTargetTime = CalculateTargetTime(brushPosition, targetTime, mode);
+            // Brush 위치를 로컬 좌표로 변환
+            Vector3 localBrushPos = transform.InverseTransformPoint(brushWorldPos);
 
-            // Vertex별 시간 업데이트
-            temporalData.ApplyTemporalBrush(
-                brushPosition,
-                brushRadius,
-                strength,
-                adjustedTargetTime,
-                originalVertices,
-                transform
-            );
+            // 각 vertex에 대해 시간 변경 적용
+            bool anyVertexChanged = false;
+            for (int i = 0; i < originalVertices.Length; i++)
+            {
+                float distance = Vector3.Distance(originalVertices[i], localBrushPos);
 
-            // Mesh 업데이트
-            UpdateMeshBasedOnTime();
+                if (distance <= brushRadius)
+                {
+                    // Falloff 계산
+                    float normalizedDistance = distance / brushRadius;
+                    float falloff = Mathf.Pow(1f - normalizedDistance, brushFalloffPower);
+
+                    // 최종 영향력
+                    float influence = brushStrength * falloff;
+
+                    // 시간 변경
+                    float currentVertexTime = temporalData.vertexTimes[i];
+                    float newTime;
+
+                    if (smoothTimeTransition)
+                    {
+                        newTime = Mathf.Lerp(currentVertexTime, targetTime,
+                                           influence * timeChangeSpeed * Time.deltaTime);
+                    }
+                    else
+                    {
+                        newTime = Mathf.Lerp(currentVertexTime, targetTime, influence);
+                    }
+
+                    // 시간 범위 제한
+                    newTime = Mathf.Clamp(newTime, 0f, 1f);
+                    temporalData.vertexTimes[i] = newTime;
+
+                    anyVertexChanged = true;
+                }
+            }
+
+            // 변경사항이 있으면 mesh 업데이트
+            if (anyVertexChanged)
+            {
+                UpdateMeshBasedOnTime();
+
+                // 시각적 피드백
+                StartCoroutine(ShowBrushEffect(brushWorldPos, brushRadius, targetTime));
+            }
         }
 
         /// <summary>
@@ -132,12 +191,13 @@ namespace TemporalVR
             for (int i = 0; i < originalVertices.Length; i++)
             {
                 float vertexTime = temporalData.vertexTimes[i];
+                float actualTime = vertexTime * temporalData.maxTime;
 
                 // 해당 시간에 맞는 keyframe 찾기
                 TKeyframe from = null, to = null;
                 float localT = 0f;
 
-                FindKeyframesForTime(vertexTime * temporalData.maxTime, out from, out to, out localT);
+                FindKeyframesForTime(actualTime, out from, out to, out localT);
 
                 if (from != null && to != null && i < from.vertices.Length && i < to.vertices.Length)
                 {
@@ -145,7 +205,8 @@ namespace TemporalVR
                     newVertices[i] = Vector3.Lerp(from.vertices[i], to.vertices[i], localT);
 
                     // Normal 보간
-                    if (from.normals != null && to.normals != null)
+                    if (from.normals != null && to.normals != null &&
+                        i < from.normals.Length && i < to.normals.Length)
                     {
                         newNormals[i] = Vector3.Slerp(from.normals[i], to.normals[i], localT);
                     }
@@ -187,6 +248,8 @@ namespace TemporalVR
             to = null;
             t = 0f;
 
+            if (keyframes.Count == 0) return;
+
             // Edge cases
             if (time <= keyframes[0].time)
             {
@@ -211,43 +274,74 @@ namespace TemporalVR
                 {
                     from = keyframes[i];
                     to = keyframes[i + 1];
-                    t = (time - from.time) / (to.time - from.time);
+
+                    float duration = to.time - from.time;
+                    if (duration > 0)
+                    {
+                        t = (time - from.time) / duration;
+                    }
                     break;
                 }
             }
         }
 
         /// <summary>
-        /// Brush mode에 따른 target time 계산
+        /// 브러시 효과 시각화
         /// </summary>
-        float CalculateTargetTime(Vector3 brushPosition, float brushTime, TemporalBrushData.BrushMode mode)
+        IEnumerator ShowBrushEffect(Vector3 position, float radius, float timeValue)
         {
-            switch (mode)
+            GameObject effect = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            effect.name = "BrushEffect";
+            effect.transform.position = position;
+            effect.transform.localScale = Vector3.one * radius * 2f;
+
+            Destroy(effect.GetComponent<Collider>());
+
+            Renderer renderer = effect.GetComponent<Renderer>();
+            Material effectMat = new Material(Shader.Find("Sprites/Default"));
+
+            float normalizedTime = Mathf.Clamp01(timeValue);
+            Color effectColor = timeGradient.Evaluate(normalizedTime);
+            effectColor.a = 0.3f;
+            effectMat.color = effectColor;
+            renderer.material = effectMat;
+
+            // 페이드 아웃
+            float duration = 0.5f;
+            float elapsed = 0f;
+
+            while (elapsed < duration)
             {
-                case TemporalBrushData.BrushMode.Absolute:
-                    return brushTime;
+                float t = elapsed / duration;
+                effectColor.a = Mathf.Lerp(0.3f, 0f, t);
+                effectMat.color = effectColor;
+                effect.transform.localScale = Vector3.one * radius * 2f * (1f + t * 0.5f);
 
-                case TemporalBrushData.BrushMode.Relative:
-                    // 브러시 움직임 방향에 따라 시간 증감
-                    // TODO: 이전 브러시 위치와 비교하여 방향 계산
-                    return brushTime;
-
-                case TemporalBrushData.BrushMode.Smooth:
-                    // 주변 vertex들의 평균 시간과 블렌딩
-                    return brushTime;
-
-                case TemporalBrushData.BrushMode.Ripple:
-                    // 시간에 따른 파동 효과
-                    float wave = Mathf.Sin(Time.time * 2f) * 0.1f;
-                    return brushTime + wave;
-
-                default:
-                    return brushTime;
+                elapsed += Time.deltaTime;
+                yield return null;
             }
+
+            Destroy(effect);
         }
 
         /// <summary>
-        /// 전체 메시의 평균 시간 (디버깅용)
+        /// 전체 시간 설정 (테스트용)
+        /// </summary>
+        public void SetGlobalTime(float time)
+        {
+            globalTime = Mathf.Clamp01(time);
+
+            // 모든 vertex를 같은 시간으로 설정
+            for (int i = 0; i < temporalData.vertexTimes.Length; i++)
+            {
+                temporalData.vertexTimes[i] = globalTime;
+            }
+
+            UpdateMeshBasedOnTime();
+        }
+
+        /// <summary>
+        /// 현재 평균 시간 가져오기
         /// </summary>
         public float GetAverageTime()
         {
@@ -262,38 +356,49 @@ namespace TemporalVR
         }
 
         /// <summary>
-        /// 특정 위치에서의 시간 값 가져오기
+        /// 시간 범위 가져오기
         /// </summary>
-        public float GetTimeAtPosition(Vector3 worldPosition)
+        public void GetTimeRange(out float minTime, out float maxTime)
         {
-            if (temporalData == null || originalVertices == null) return 0f;
+            minTime = temporalData?.minTime ?? 0f;
+            maxTime = temporalData?.maxTime ?? 10f;
+        }
 
-            // 가장 가까운 vertex 찾기
-            float minDistance = float.MaxValue;
-            int closestVertex = 0;
+        // 테스트용 컨텍스트 메뉴
+        [ContextMenu("Reset All Vertices to Start")]
+        void ResetToStart()
+        {
+            SetGlobalTime(0f);
+        }
 
-            for (int i = 0; i < originalVertices.Length; i++)
+        [ContextMenu("Set All Vertices to End")]
+        void SetToEnd()
+        {
+            SetGlobalTime(1f);
+        }
+
+        [ContextMenu("Randomize Vertex Times")]
+        void RandomizeVertexTimes()
+        {
+            if (temporalData == null) return;
+
+            for (int i = 0; i < temporalData.vertexTimes.Length; i++)
             {
-                Vector3 worldVertex = transform.TransformPoint(originalVertices[i]);
-                float distance = Vector3.Distance(worldVertex, worldPosition);
-
-                if (distance < minDistance)
-                {
-                    minDistance = distance;
-                    closestVertex = i;
-                }
+                temporalData.vertexTimes[i] = Random.Range(0f, 1f);
             }
 
-            return temporalData.vertexTimes[closestVertex];
+            UpdateMeshBasedOnTime();
         }
 
         // Gizmos로 시간 분포 시각화
         void OnDrawGizmosSelected()
         {
-            if (temporalData == null || originalVertices == null) return;
-            if (!visualizeTimeGradient) return;
+            if (temporalData == null || originalVertices == null || !visualizeTimeGradient) return;
 
-            for (int i = 0; i < originalVertices.Length; i++)
+            // 샘플링 (모든 vertex 그리면 너무 많음)
+            int step = Mathf.Max(1, originalVertices.Length / 50);
+
+            for (int i = 0; i < originalVertices.Length; i += step)
             {
                 Vector3 worldPos = transform.TransformPoint(originalVertices[i]);
                 float time = temporalData.vertexTimes[i];
