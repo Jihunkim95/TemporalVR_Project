@@ -25,3 +25,17 @@ Temporal Brush의 핵심은 "시간을 칠하는" 인터페이스. 현재는 전
 #insight #day13
 
 ---
+
+## 2025-07-09 - Day 14
+
+### Insight
+Vertex별 개별 시간 제어를 통한 부분적 temporal manipulation 성공. 시간을 공간에 "칠하는" 인터페이스의 직관성 확인. VR에서 4차원(시간) 조작의 실용적 구현 가능성 입증.
+
+### Context
+- Phase: Foundation & Setup
+- Research Focus: RQ2: Efficient temporal manipulation paradigms
+
+### Tags
+#insight #day14
+
+---

@@ -14,14 +14,14 @@
 ## 💻 Git Status
 - **Modified files**: 4
 - **Current branch**: master
-- **Last commit**: 146472c - Feat: PaintMode시 Object에 Vertex Color 변경완료 (3 minutes ago)
+- **Last commit**: 1b2fddd - Day 13: PerformanceMonitor 버그 수정 및 Temporal Brush 시스템 구현 (18 hours ago)
 
 ## 🔥 Hot Files (Recently Active)
-- `unity/TemporalVR/Assets/Scripts/TemporalVR/Core/PerformanceMonitor.cs.meta`
-- `unity/TemporalVR/Assets/Scripts/TemporalVR/Core/TVR_Setup.cs`
-- `unity/TemporalVR/Assets/Material.meta`
-- `unity/TemporalVR/Assets/Scripts/TemporalVR/Morphing/TMorphObj_V2.cs`
+- `research/daily_notes.md`
 - `unity/TemporalVR/Assets/Scenes/TemporalVRRig.unity`
+- `project_master.md`
+- `unity/TemporalVR/Assets/Scripts/TemporalVR/Morphing/TMorphObj_V2.cs`
+- `unity/TemporalVR/Assets/Scripts/TemporalVR/TVR_Feedback.cs`
 
 ## ⚠️ Current Blockers
 - ✅ No blockers detected

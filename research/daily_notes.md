@@ -248,11 +248,46 @@ Paint Mode에서 불필요한 Sphere 생성 문제 (Particle 제거로 해결). 
 - Progress: 18.9%
 
 ### 🎯 Next Steps
+- Unity스크립트구조.md
 - 현재 구조(TemporalObject → TMorphObj → TMorphTest)가 복잡하여 향후 리팩토링 필요.
 - Growing Tree 데모 씬 생성
 - VR 컨트롤러로 성장 속도 조절 구현
 
 ### 💭 Reflection
 오늘은 큰 버그들을 해결하고 Temporal Brush의 기초를 구현한 생산적인 날이었다. 특히 Vertex 단위 시간 제어를 위한 TMorphObj_V2 설계는 프로젝트의 핵심 혁신이 될 것 같다. 내일은 Week 2를 마무리하고 실제로 "시간을 칠하는" 데모구현
+
+---
+
+## 2025-07-09 (Wed) - Day 14: TMorphObj_V2와 Temporal Brush 연동 완성 및 vertex color 시각화 구현
+
+### 🎯 Completed Tasks
+- TMorphObj_V2와 Temporal Brush 완전한 연동 구현
+- TVR_Controller의 Paint Mode에서 Ray-based hit detection 추가
+- TemporalEventSystem.cs 전체 구현 (누락되었던 파일)
+- Vertex Color Material 변환 시스템 구축
+- TemporalEventSystem.cs 전체 구현 (누락되었던 파일)
+
+### 🔧 Technical Progress
+Standard Shader는 vertex color를 지원하지 않아 Sprites/Default나 Unlit/VertexColor로 변경 필요. TMorphObj_V2의 TKeyframe.color는 사용되지 않고, Time Gradient만 vertex color 결정에 사용됨. Ray-based 브러시 위치 계산으로 정확한 표면 타겟팅 가능.
+
+### 💡 Research Insights
+Vertex별 개별 시간 제어를 통한 부분적 temporal manipulation 성공. 시간을 공간에 "칠하는" 인터페이스의 직관성 확인. VR에서 4차원(시간) 조작의 실용적 구현 가능성 입증.
+
+### ⚠️ Issues & Blockers
+초기에 브러시 이펙트가 컨트롤러 위치에 생성되는 문제 → hit.point 사용으로 해결. Material이 vertex color를 표시하지 않는 문제 → Shader 변경으로 해결.
+
+### 📊 Statistics
+- Git commits today: 2
+- Files modified: 4
+- Progress: 19.2%
+
+### 🎯 Next Steps
+- 더 복잡한 mesh (Sphere, subdivided plane)에서 temporal painting 테스트
+- Brush 모드별 차별화 구현 (Absolute, Relative, Smooth, Ripple)
+- 성능 최적화 및 LOD 시스템 검토
+- Phase 2 준비: 프로시저럴 성장 알고리즘 설계
+
+### 💭 Reflection
+오늘 드디어 "시간을 칠하는" 핵심 기능이 실제로 작동하는 것을 확인했습니다. Vertex color로 시간의 흐름이 시각화되고, mesh가 실제로 변형되는 것을 보니 SIGGRAPH 논문의 핵심 아이디어가 구현 가능함을 확신하게 되었습니다. Phase 1이 성공적으로 마무리되고 있습니다!
 
 ---
