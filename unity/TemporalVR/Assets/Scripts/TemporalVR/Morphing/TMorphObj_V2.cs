@@ -72,6 +72,47 @@ namespace TemporalVR
             Debug.Log("Test keyframes created!");
         }
 
+        [ContextMenu("Create Wave Test for Plane")]
+        void CreateWaveTestForPlane()
+        {
+            MeshFilter mf = GetComponent<MeshFilter>();
+            if (mf.mesh == null) return;
+
+            keyframes.Clear();
+
+            // 키프레임 1: 평평한 상태
+            TKeyframe kf1 = new TKeyframe();
+            kf1.time = 0f;
+            kf1.color = Color.blue;
+            kf1.CaptureFromMesh(mf.mesh);
+            keyframes.Add(kf1);
+
+            // 키프레임 2: 물결 상태
+            TKeyframe kf2 = new TKeyframe();
+            kf2.time = 10f;
+            kf2.color = Color.red;
+
+            // ProBuilder 메시에서 정점 가져오기
+            Vector3[] verts = mf.mesh.vertices;
+            Vector3[] newVerts = new Vector3[verts.Length];
+
+            for (int i = 0; i < verts.Length; i++)
+            {
+                newVerts[i] = verts[i];
+                // 물결 효과 추가
+                newVerts[i].y = Mathf.Sin(verts[i].x * 3f) * 0.3f +
+                                Mathf.Sin(verts[i].z * 3f) * 0.3f;
+            }
+
+            kf2.vertices = newVerts;
+            kf2.normals = mf.mesh.normals;
+            keyframes.Add(kf2);
+
+            // 재초기화
+            InitializeTemporalData();
+
+            Debug.Log($"Wave test created with {verts.Length} vertices!");
+        }
         void Awake()
         {
             InitializeComponents();
@@ -162,8 +203,15 @@ namespace TemporalVR
         {
             if (temporalData == null || workingMesh == null) return;
 
+            // 디버그 로깅 추가
+            Debug.Log($"[Brush] World Pos: {brushWorldPos}, Radius: {brushRadius}");
+            
             // Brush 위치를 로컬 좌표로 변환
             Vector3 localBrushPos = transform.InverseTransformPoint(brushWorldPos);
+            Debug.Log($"[Brush] Local Pos: {localBrushPos}");
+
+            // 영향받는 버텍스 카운트
+            int affectedCount = 0;
 
             // 각 vertex에 대해 시간 변경 적용
             bool anyVertexChanged = false;
@@ -173,6 +221,14 @@ namespace TemporalVR
 
                 if (distance <= brushRadius)
                 {
+                    affectedCount++;
+
+                    // 첫 번째 영향받는 버텍스 정보 출력
+                    if (affectedCount == 1)
+                    {
+                        Debug.Log($"[Brush] First affected vertex {i}: pos={originalVertices[i]}, dist={distance}");
+                    }
+
                     // Falloff 계산
                     float normalizedDistance = distance / brushRadius;
                     float falloff = Mathf.Pow(1f - normalizedDistance, brushFalloffPower);
@@ -202,6 +258,8 @@ namespace TemporalVR
                 }
             }
 
+            Debug.Log($"[Brush] Affected vertices: {affectedCount}/{originalVertices.Length}");
+
             // 변경사항이 있으면 mesh 업데이트
             if (anyVertexChanged)
             {
@@ -211,6 +269,7 @@ namespace TemporalVR
                 StartCoroutine(ShowBrushEffect(brushWorldPos, brushRadius, targetTime));
             }
         }
+
 
         /// <summary>
         /// 각 vertex의 시간에 따라 mesh 형태 업데이트
