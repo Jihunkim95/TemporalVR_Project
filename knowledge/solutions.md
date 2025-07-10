@@ -39,3 +39,17 @@ Vertex별 개별 시간 제어를 통한 부분적 temporal manipulation 성공.
 #insight #day14
 
 ---
+
+## 2025-07-10 - Day 15
+
+### Insight
+"시간을 4차원 공간으로 조작"하는 핵심 개념 실현. Scrub Mode(균일한 시간 변화)와 Paint Mode(부분적 시간 변화)의 차이가 창의적 가능성을 극대화. 나무의 각 부분이 다른 성장 단계를 가질 수 있음.
+
+### Context
+- Phase: Core Development
+- Research Focus: RQ3: Creative workflow enhancements
+
+### Tags
+#insight #day15
+
+---

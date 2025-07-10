@@ -291,3 +291,38 @@ Vertex별 개별 시간 제어를 통한 부분적 temporal manipulation 성공.
 오늘 드디어 "시간을 칠하는" 핵심 기능이 실제로 작동하는 것을 확인했습니다. Vertex color로 시간의 흐름이 시각화되고, mesh가 실제로 변형되는 것을 보니 SIGGRAPH 논문의 핵심 아이디어가 구현 가능함을 확신하게 되었습니다. Phase 1이 성공적으로 마무리되고 있습니다!
 
 ---
+
+## 2025-07-10 (Thu) - Day 15: TMorphObj 계열 분석 완료 및 Vertex 단위 시간 제어로 "시간을 칠하는" Paint Mode 구현 성공
+
+### 🎯 Completed Tasks
+- TMorphObj, TMorphObj_V2, TMorphTest 스크립트 완전 분석 및 차이점 파악
+- ProBuilder Vertex Color 표시 문제 해결 (Shader 변경)
+- Plane과 Cube에서 Paint Mode 테스트 성공
+- Mesh Scale 문제 해결 (Blender import scale 조정)
+- Wave Test 키프레임 데이터 생성 및 적용
+- Vertex별 개별 시간 제어 구현 확인
+
+### 🔧 Technical Progress
+TMorphObj_V2가 프로젝트 비전에 가장 적합한 구현체임을 확인. Vertex별로 다른 시간을 가질 수 있어 한 객체 안에 과거와 미래가 공존 가능. ProBuilder 메시는 UnityVertexColor 셰이더 필요
+
+### 💡 Research Insights
+"시간을 4차원 공간으로 조작"하는 핵심 개념 실현. Scrub Mode(균일한 시간 변화)와 Paint Mode(부분적 시간 변화)의 차이가 창의적 가능성을 극대화. 나무의 각 부분이 다른 성장 단계를 가질 수 있음.
+
+### ⚠️ Issues & Blockers
+roBuilder Vertex Color 문제와 Mesh Scale 문제 해결.painting시Shpere Effect때문에, 프레인 드랍현상이 일어나는것 같음. Plane Painting시에 Painting된 vertex영역이 떨림.
+
+### 📊 Statistics
+- Git commits today: 2
+- Files modified: 1
+- Progress: 19.5%
+
+### 🎯 Next Steps
+- Curve Editor 구현 시작 (시간 보간 곡선 편집)
+- Brush 속도가 시간 변화 속도에 영향 주도록 개선
+- 다중 객체 시스템 설계 시작
+- 성능 최적화 (많은 Vertex에서도 90 FPS 유지)
+
+### 💭 Reflection
+vertex의 painting 시간제어 효과가 visual적으로 보여져서 만족스럽다.
+
+---

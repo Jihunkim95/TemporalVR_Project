@@ -12,16 +12,16 @@
 - TMorphObj_V2와 Temporal Brush 완전한 연동 구현 - TVR_Controller의 Paint Mode에서 Ray-based hit detection 추가 - TemporalEventSystem.cs 전체 구현 (누락되었던 파일)
 
 ## 💻 Git Status
-- **Modified files**: 3
+- **Modified files**: 2
 - **Current branch**: master
 - **Last commit**: cfe6a25 - Day 14: TMorphObj_V2와 Temporal Brush 연동 완성 및 vertex color 시각화 구현 (17 hours ago)
 
 ## 🔥 Hot Files (Recently Active)
-- `unity/TemporalVR/Assets/Scripts/TemporalVR/Core/TVR_Controller.cs`
-- `unity/TemporalVR/Assets/Scripts/TemporalVR/Brush/TBrushData.cs`
-- `unity/TemporalVR/TemporalVR.sln`
-- `unity/TemporalVR/Assets/Scenes/TemporalVRRig.unity`
+- `unity/TemporalVR/Assets/Scripts/TemporalVR/Core/TVR_Setup.cs`
+- `unity/TemporalVR/Assets/Scripts/TemporalVR/Core/PerformanceMonitor.cs`
+- `unity/TemporalVR/Assets/Scripts/TemporalVR/Core.meta`
 - `unity/TemporalVR/Assets/Scripts/TemporalVR/Core/TVR_Controller.cs.meta`
+- `daily_context.md`
 
 ## ⚠️ Current Blockers
 - ✅ No blockers detected
