@@ -37,6 +37,9 @@ namespace TemporalVR
         // 현재 시간 추적
         private float globalTime = 0f;
 
+        private GameObject currentBrushEffect;  // 현재 활성화된 이펙트
+        private Coroutine brushEffectCoroutine; // 실행 중인 코루틴
+
         [ContextMenu("Create Simple Test Data")]
         void CreateSimpleTestData()
         {
@@ -265,12 +268,29 @@ namespace TemporalVR
             {
                 UpdateMeshBasedOnTime();
 
-                // 시각적 피드백
-                StartCoroutine(ShowBrushEffect(brushWorldPos, brushRadius, targetTime));
+                // 기존 이펙트가 있으면 업데이트만, 없으면 새로 생성
+                UpdateOrCreateBrushEffect(brushWorldPos, brushRadius, targetTime);
             }
         }
 
+        // 이펙트 업데이트 또는 생성
+        private void UpdateOrCreateBrushEffect(Vector3 position, float radius, float timeValue)
+        {
+            if (currentBrushEffect != null)
+            {
+                // 기존 이펙트 위치만 업데이트
+                currentBrushEffect.transform.position = position;
+                currentBrushEffect.transform.localScale = Vector3.one * radius * 2f;
+            }
+            else
+            {
+                // 새 이펙트 생성
+                if (brushEffectCoroutine != null)
+                    StopCoroutine(brushEffectCoroutine);
 
+                brushEffectCoroutine = StartCoroutine(ShowBrushEffect(position, radius, timeValue));
+            }
+        }
         /// <summary>
         /// 각 vertex의 시간에 따라 mesh 형태 업데이트
         /// </summary>
@@ -384,14 +404,18 @@ namespace TemporalVR
         /// </summary>
         IEnumerator ShowBrushEffect(Vector3 position, float radius, float timeValue)
         {
-            GameObject effect = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            effect.name = "BrushEffect";
-            effect.transform.position = position;
-            effect.transform.localScale = Vector3.one * radius * 2f;
+            // 기존 이펙트 정리
+            if (currentBrushEffect != null)
+                Destroy(currentBrushEffect);
 
-            Destroy(effect.GetComponent<Collider>());
+            currentBrushEffect = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            currentBrushEffect.name = "BrushEffect";
+            currentBrushEffect.transform.position = position;
+            currentBrushEffect.transform.localScale = Vector3.one * radius * 2.0f;
 
-            Renderer renderer = effect.GetComponent<Renderer>();
+            Destroy(currentBrushEffect.GetComponent<Collider>());
+
+            Renderer renderer = currentBrushEffect.GetComponent<Renderer>();
             Material effectMat = new Material(Shader.Find("Sprites/Default"));
 
             float normalizedTime = Mathf.Clamp01(timeValue);
@@ -406,16 +430,24 @@ namespace TemporalVR
 
             while (elapsed < duration)
             {
+                if (currentBrushEffect == null) yield break; // 중간에 삭제됐으면 중단
+
                 float t = elapsed / duration;
                 effectColor.a = Mathf.Lerp(0.3f, 0f, t);
                 effectMat.color = effectColor;
-                effect.transform.localScale = Vector3.one * radius * 2f * (1f + t * 0.5f);
+                currentBrushEffect.transform.localScale = Vector3.one * radius * 2f * (1f + t * 0.5f);
 
                 elapsed += Time.deltaTime;
                 yield return null;
             }
 
-            Destroy(effect);
+            if (currentBrushEffect != null)
+            {
+                Destroy(currentBrushEffect);
+                currentBrushEffect = null;
+            }
+
+            brushEffectCoroutine = null;
         }
 
         /// <summary>

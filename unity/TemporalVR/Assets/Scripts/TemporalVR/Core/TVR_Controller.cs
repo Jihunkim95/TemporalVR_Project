@@ -299,7 +299,7 @@ namespace TemporalVR
 
             if (triggerValue > 0.1f)
             {
-                float brushRadius = 0.1f + (triggerValue * 0.08f);
+                float brushRadius = 0.05f + (triggerValue * 0.08f);
                 float brushStrength = triggerValue;
                 float targetTime = Mathf.Clamp01((rightController.position.y - 0.5f) / 2f);
 
