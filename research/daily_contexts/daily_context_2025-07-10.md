@@ -66,9 +66,11 @@ TMorphObj.cs (기본) → TMorphTest.cs (데모)
 - Phase 2에서 공통 인터페이스로 통합 예정
 
 ### 📈 내일 할 일 (Day 16)
-1. **Curve Editor** 구현 - 시간 보간 곡선 편집
-2. **Brush 속도 제어** - 브러시 움직임이 시간 변화 속도에 영향
-3. **성능 최적화** - 많은 Vertex를 가진 메시에서도 90 FPS 유지
+1. **Brush 성능** - paint mode에서 Brush Effect 지속적인 Shpere로 Frame drop현상
+2. ** Plane Painting 이슈 ** - plane을 Painting시에 vertex가 떨리면서 제대로 랜더링 안되는 현상
+3. **Curve Editor** 구현 - 시간 보간 곡선 편집
+4. **Brush 속도 제어** - 브러시 움직임이 시간 변화 속도에 영향
+5. **성능 최적화** - 많은 Vertex를 가진 메시에서도 90 FPS 유지
 
 ### 🚀 프로젝트 비전 달성도
 Phase 1 (Morph-based System)의 핵심 구현 거의 완료! Vertex 단위 시간 제어로 "시간을 4차원 공간으로 조작"하는 혁신적 개념을 성공적으로 구현했습니다.
