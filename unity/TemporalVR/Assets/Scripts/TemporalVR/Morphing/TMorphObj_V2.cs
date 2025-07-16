@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+﻿using System.Collections;
 using System.Collections.Generic;
-using System.Collections;
+using System.Linq;
+using UnityEngine;
 
 namespace TemporalVR
 {
@@ -206,12 +207,13 @@ namespace TemporalVR
         {
             if (temporalData == null || workingMesh == null) return;
 
-            // 디버그 로깅 추가
-            Debug.Log($"[Brush] World Pos: {brushWorldPos}, Radius: {brushRadius}");
+            //// 디버그 로깅 추가
+            //Debug.Log($"[Brush] Target Time: {targetTime}, Strength: {brushStrength}");
+            //Debug.Log($"[Brush] World Pos: {brushWorldPos}, Radius: {brushRadius}");
             
             // Brush 위치를 로컬 좌표로 변환
             Vector3 localBrushPos = transform.InverseTransformPoint(brushWorldPos);
-            Debug.Log($"[Brush] Local Pos: {localBrushPos}");
+            //Debug.Log($"[Brush] Local Pos: {localBrushPos}");
 
             // 영향받는 버텍스 카운트
             int affectedCount = 0;
@@ -226,11 +228,11 @@ namespace TemporalVR
                 {
                     affectedCount++;
 
-                    // 첫 번째 영향받는 버텍스 정보 출력
-                    if (affectedCount == 1)
-                    {
-                        Debug.Log($"[Brush] First affected vertex {i}: pos={originalVertices[i]}, dist={distance}");
-                    }
+                    //// 첫 번째 영향받는 버텍스 정보 출력
+                    //if (affectedCount == 1)
+                    //{
+                    //    Debug.Log($"[Brush] First affected vertex {i}: pos={originalVertices[i]}, dist={distance}");
+                    //}
 
                     // Falloff 계산
                     float normalizedDistance = distance / brushRadius;
@@ -239,17 +241,18 @@ namespace TemporalVR
                     // 최종 영향력
                     float influence = brushStrength * falloff;
 
-                    // 시간 변경
                     float currentVertexTime = temporalData.vertexTimes[i];
                     float newTime;
 
                     if (smoothTimeTransition)
                     {
-                        newTime = Mathf.Lerp(currentVertexTime, targetTime,
-                                           influence * timeChangeSpeed * Time.deltaTime);
+                        // 브러시를 누르고 있으면 시간이 계속 전진
+                        float timeChangeRate = influence * timeChangeSpeed * Time.deltaTime;
+                        newTime = currentVertexTime + timeChangeRate;
                     }
                     else
                     {
+                        // 즉시 targetTime으로 설정
                         newTime = Mathf.Lerp(currentVertexTime, targetTime, influence);
                     }
 
@@ -261,7 +264,7 @@ namespace TemporalVR
                 }
             }
 
-            Debug.Log($"[Brush] Affected vertices: {affectedCount}/{originalVertices.Length}");
+            //Debug.Log($"[Brush] Affected vertices: {affectedCount}/{originalVertices.Length}");
 
             // 변경사항이 있으면 mesh 업데이트
             if (anyVertexChanged)
@@ -271,6 +274,7 @@ namespace TemporalVR
                 // 기존 이펙트가 있으면 업데이트만, 없으면 새로 생성
                 UpdateOrCreateBrushEffect(brushWorldPos, brushRadius, targetTime);
             }
+
         }
 
         // 이펙트 업데이트 또는 생성
