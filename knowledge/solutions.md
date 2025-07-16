@@ -53,3 +53,59 @@ Vertex별 개별 시간 제어를 통한 부분적 temporal manipulation 성공.
 #insight #day15
 
 ---
+
+## 2025-07-16 - Day 21
+
+### Insight
+Temporal Brush는 즉각적인 변형 도구가 아니라 "시간 정보를 칠하는" 마킹 도구여야 함. 이는 SIGGRAPH 논문의 Space-Time Hypercube 시각화에서 4D 데이터를 3D로 투영하는 개념과 일치. 브러시 누적 방식은 시간의 강도를 시각적으로 표현하는 효과적인 방법.
+
+### Context
+- Phase: Core Development
+- Research Focus: RQ3: Creative workflow enhancements
+
+### Tags
+#insight #day21
+
+---
+
+## 2025-07-16 - Day 21
+
+### Insight
+Temporal Brush는 즉각적인 변형 도구가 아니라 "시간 정보를 칠하는" 마킹 도구여야 함. 이는 SIGGRAPH 논문의 Space-Time Hypercube 시각화에서 4D 데이터를 3D로 투영하는 개념과 일치. 브러시 누적 방식은 시간의 강도를 시각적으로 표현하는 효과적인 방법.
+
+### Context
+- Phase: Core Development
+- Research Focus: RQ3: Creative workflow enhancements
+
+### Tags
+#insight #day21
+
+---
+
+## 2025-07-16 - Day 21
+
+### Insight
+Temporal Brush는 즉각적인 변형 도구가 아니라 "시간 정보를 칠하는" 마킹 도구여야 함. 이는 SIGGRAPH 논문의 Space-Time Hypercube 시각화에서 4D 데이터를 3D로 투영하는 개념과 일치. 브러시 누적 방식은 시간의 강도를 시각적으로 표현하는 효과적인 방법.
+
+### Context
+- Phase: Core Development
+- Research Focus: RQ3: Creative workflow enhancements
+
+### Tags
+#insight #day21
+
+---
+
+## 2025-07-16 - Day 21
+
+### Insight
+Temporal Brush는 즉각적인 변형 도구가 아니라 "시간 정보를 칠하는" 마킹 도구여야 함. 이는 SIGGRAPH 논문의 Space-Time Hypercube 시각화에서 4D 데이터를 3D로 투영하는 개념과 일치. 브러시 누적 방식은 시간의 강도를 시각적으로 표현하는 효과적인 방법.
+
+### Context
+- Phase: Core Development
+- Research Focus: RQ3: Creative workflow enhancements
+
+### Tags
+#insight #day21
+
+---

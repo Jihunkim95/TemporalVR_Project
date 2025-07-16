@@ -352,3 +352,141 @@ vertex의 painting 시간제어 효과가 visual적으로 보여져서 만족스
 
 
 ---
+
+## 2025-07-16 (Wed) - Day 21: Temporal VR 비전 재정립 및 TMorphObj_V2 구현
+
+### 🎯 Completed Tasks
+- Temporal VR 프로젝트의 정확한 비전 재정립 (Space-Time Hypercube 개념)
+- TMorphObj_V2 완전 재구현 - 시간 마킹과 재생 분리
+- TemporalEventSystem에 OnPlaybackToggled 이벤트 추가
+- TVR_Controller의 브러시 메서드 호출 수정 (ApplyTemporalBrush → MarkTemporalData)
+- Serialization 충돌 해결 (currentTime → playbackPosition)
+- 브러시 시간 누적 방식 구현 (오래 칠수록 빨간색으로 변화)
+
+### 🔧 Technical Progress
+프로젝트의 핵심 비전을 재정립: "시간을 4차원 공간으로 조작"하는 Space-Time Hypercube (STH) 개념. 기존의 실시간 변형 방식에서 벗어나, 브러시로 시간 정보를 마킹하고 별도의 타임라인 재생으로 변형을 확인하는 방식으로 전환. 이는 사용자가 시간축을 따라 객체의 변화를 스케치하는 본래 비전에 더 가깝다.
+
+### 💡 Research Insights
+Temporal Brush는 즉각적인 변형 도구가 아니라 "시간 정보를 칠하는" 마킹 도구여야 함. 이는 SIGGRAPH 논문의 Space-Time Hypercube 시각화에서 4D 데이터를 3D로 투영하는 개념과 일치. 브러시 누적 방식은 시간의 강도를 시각적으로 표현하는 효과적인 방법.
+
+### ⚠️ Issues & Blockers
+VR 내 재생 컨트롤러 UI가 아직 구현되지 않음. 현재는 백엔드 로직만 완성된 상태로, 실제 VR에서 재생/정지, 타임라인 스크러빙 등의 인터랙션 구현 필요.
+
+### 📊 Statistics
+- Git commits today: 3
+- Files modified: 1
+- Progress: 21.4%
+
+### 🎯 Next Steps
+- VR 재생 컨트롤 UI 구현 (왼쪽 컨트롤러 활용)
+- 타임라인 시각화 위젯 추가
+- 재생 속도 조절 기능
+- 시간 마킹 프리뷰 모드
+
+### 💭 Reflection
+Git commits today: 6
+
+---
+
+## 2025-07-16 (Wed) - Day 21: Temporal VR 비전 재정립 및 TMorphObj_V2 구현
+
+### 🎯 Completed Tasks
+- Temporal VR 프로젝트의 정확한 비전 재정립 (Space-Time Hypercube 개념)
+- TMorphObj_V2 완전 재구현 - 시간 마킹과 재생 분리
+- TemporalEventSystem에 OnPlaybackToggled 이벤트 추가
+- TVR_Controller의 브러시 메서드 호출 수정 (ApplyTemporalBrush → MarkTemporalData)
+- Serialization 충돌 해결 (currentTime → playbackPosition)
+- 브러시 시간 누적 방식 구현 (오래 칠수록 빨간색으로 변화)
+
+### 🔧 Technical Progress
+프로젝트의 핵심 비전을 재정립: "시간을 4차원 공간으로 조작"하는 Space-Time Hypercube (STH) 개념. 기존의 실시간 변형 방식에서 벗어나, 브러시로 시간 정보를 마킹하고 별도의 타임라인 재생으로 변형을 확인하는 방식으로 전환. 이는 사용자가 시간축을 따라 객체의 변화를 스케치하는 본래 비전에 더 가깝다.
+
+### 💡 Research Insights
+Temporal Brush는 즉각적인 변형 도구가 아니라 "시간 정보를 칠하는" 마킹 도구여야 함. 이는 SIGGRAPH 논문의 Space-Time Hypercube 시각화에서 4D 데이터를 3D로 투영하는 개념과 일치. 브러시 누적 방식은 시간의 강도를 시각적으로 표현하는 효과적인 방법.
+
+### ⚠️ Issues & Blockers
+VR 내 재생 컨트롤러 UI가 아직 구현되지 않음. 현재는 백엔드 로직만 완성된 상태로, 실제 VR에서 재생/정지, 타임라인 스크러빙 등의 인터랙션 구현 필요.
+
+### 📊 Statistics
+- Git commits today: 3
+- Files modified: 3
+- Progress: 21.4%
+
+### 🎯 Next Steps
+- VR 재생 컨트롤 UI 구현 (왼쪽 컨트롤러 활용)
+- 타임라인 시각화 위젯 추가
+- 재생 속도 조절 기능
+- 시간 마킹 프리뷰 모드
+
+### 💭 Reflection
+Git commits today: 6
+
+---
+
+## 2025-07-16 (Wed) - Day 21: Temporal VR 비전 재정립 및 TMorphObj_V2 구현
+
+### 🎯 Completed Tasks
+- Temporal VR 프로젝트의 정확한 비전 재정립 (Space-Time Hypercube 개념)
+- TMorphObj_V2 완전 재구현 - 시간 마킹과 재생 분리
+- TemporalEventSystem에 OnPlaybackToggled 이벤트 추가
+- TVR_Controller의 브러시 메서드 호출 수정 (ApplyTemporalBrush → MarkTemporalData)
+- Serialization 충돌 해결 (currentTime → playbackPosition)
+- 브러시 시간 누적 방식 구현 (오래 칠수록 빨간색으로 변화)
+
+### 🔧 Technical Progress
+프로젝트의 핵심 비전을 재정립: "시간을 4차원 공간으로 조작"하는 Space-Time Hypercube (STH) 개념. 기존의 실시간 변형 방식에서 벗어나, 브러시로 시간 정보를 마킹하고 별도의 타임라인 재생으로 변형을 확인하는 방식으로 전환. 이는 사용자가 시간축을 따라 객체의 변화를 스케치하는 본래 비전에 더 가깝다.
+
+### 💡 Research Insights
+Temporal Brush는 즉각적인 변형 도구가 아니라 "시간 정보를 칠하는" 마킹 도구여야 함. 이는 SIGGRAPH 논문의 Space-Time Hypercube 시각화에서 4D 데이터를 3D로 투영하는 개념과 일치. 브러시 누적 방식은 시간의 강도를 시각적으로 표현하는 효과적인 방법.
+
+### ⚠️ Issues & Blockers
+VR 내 재생 컨트롤러 UI가 아직 구현되지 않음. 현재는 백엔드 로직만 완성된 상태로, 실제 VR에서 재생/정지, 타임라인 스크러빙 등의 인터랙션 구현 필요.
+
+### 📊 Statistics
+- Git commits today: 3
+- Files modified: 3
+- Progress: 21.4%
+
+### 🎯 Next Steps
+- VR 재생 컨트롤 UI 구현 (왼쪽 컨트롤러 활용)
+- 타임라인 시각화 위젯 추가
+- 재생 속도 조절 기능
+- 시간 마킹 프리뷰 모드
+
+
+
+---
+
+## 2025-07-16 (Wed) - Day 21: Temporal VR 비전 재정립 및 TMorphObj_V2 구현
+
+### 🎯 Completed Tasks
+- Temporal VR 프로젝트의 정확한 비전 재정립 (Space-Time Hypercube 개념)
+- TMorphObj_V2 완전 재구현 - 시간 마킹과 재생 분리
+- TemporalEventSystem에 OnPlaybackToggled 이벤트 추가
+- TVR_Controller의 브러시 메서드 호출 수정 (ApplyTemporalBrush → MarkTemporalData)
+- Serialization 충돌 해결 (currentTime → playbackPosition)
+- 브러시 시간 누적 방식 구현 (오래 칠수록 빨간색으로 변화)
+
+### 🔧 Technical Progress
+프로젝트의 핵심 비전을 재정립: "시간을 4차원 공간으로 조작"하는 Space-Time Hypercube (STH) 개념. 기존의 실시간 변형 방식에서 벗어나, 브러시로 시간 정보를 마킹하고 별도의 타임라인 재생으로 변형을 확인하는 방식으로 전환. 이는 사용자가 시간축을 따라 객체의 변화를 스케치하는 본래 비전에 더 가깝다.
+
+### 💡 Research Insights
+Temporal Brush는 즉각적인 변형 도구가 아니라 "시간 정보를 칠하는" 마킹 도구여야 함. 이는 SIGGRAPH 논문의 Space-Time Hypercube 시각화에서 4D 데이터를 3D로 투영하는 개념과 일치. 브러시 누적 방식은 시간의 강도를 시각적으로 표현하는 효과적인 방법.
+
+### ⚠️ Issues & Blockers
+VR 내 재생 컨트롤러 UI가 아직 구현되지 않음. 현재는 백엔드 로직만 완성된 상태로, 실제 VR에서 재생/정지, 타임라인 스크러빙 등의 인터랙션 구현 필요.
+
+### 📊 Statistics
+- Git commits today: 3
+- Files modified: 3
+- Progress: 21.4%
+
+### 🎯 Next Steps
+- VR 재생 컨트롤 UI 구현 (왼쪽 컨트롤러 활용)
+- 타임라인 시각화 위젯 추가
+- 재생 속도 조절 기능
+- 시간 마킹 프리뷰 모드
+
+
+
+---
