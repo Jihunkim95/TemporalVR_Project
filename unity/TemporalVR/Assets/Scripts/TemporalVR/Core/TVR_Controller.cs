@@ -321,8 +321,8 @@ namespace TemporalVR
                     TMorphObj_V2 morphV2 = hit.collider.GetComponent<TMorphObj_V2>();
                     if (morphV2 != null)
                     {
-                        // Hit point에 브러시 적용
-                        morphV2.ApplyTemporalBrush(brushPosition, brushRadius, brushStrength, targetTime);
+                        // 메서드 이름 변경: ApplyTemporalBrush → MarkTemporalData
+                        morphV2.MarkTemporalData(brushPosition, brushRadius, brushStrength, targetTime);
 
                         // 피드백 효과도 hit point에 표시
                         if (feedback != null)
@@ -351,8 +351,6 @@ namespace TemporalVR
                 else
                 {
                     // Ray가 아무것도 hit하지 않았을 때
-                    // 옵션 1: 아무것도 하지 않음
-                    // 옵션 2: 컨트롤러 앞 고정 거리에 프리뷰 표시
                     if (feedback != null)
                     {
                         Vector3 previewPosition = rightController.position + rightController.forward * 0.5f;
@@ -372,7 +370,8 @@ namespace TemporalVR
                         TMorphObj_V2 morphV2 = hit.collider.GetComponent<TMorphObj_V2>();
                         if (morphV2 != null)
                         {
-                            morphV2.ApplyTemporalBrush(hit.point, brushRadius * 0.5f, brushStrength * 1.5f, targetTime);
+                            // 메서드 이름 변경
+                            morphV2.MarkTemporalData(hit.point, brushRadius * 0.5f, brushStrength * 1.5f, targetTime);
                         }
                     }
 
