@@ -36,6 +36,7 @@
 ```python
 class TemporalBrush:
     """시간을 칠하는 브러시"""
+    - 성장 속도를 색상으로 인코딩
     - Brush Size = Temporal Range (영향 범위)
     - Brush Strength = Change Intensity (변화 강도)
     - Brush Type = Evolution Pattern (진화 패턴)
@@ -180,7 +181,3 @@ TemporalMesh = {
 
 ## 💬 **핵심 메시지**
 "We present a novel VR modeling system that treats time as a tangible, spatial dimension, enabling artists to sculpt not just objects, but their entire temporal evolution."
-
----
-
-**이것이 우리가 만들 시스템의 비전입니다!**
